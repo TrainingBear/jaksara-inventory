@@ -75,11 +75,9 @@ publishing {
     }
 }
 signing {
-    val signingKey: String? by project
-    val signingPassword: String? by project
-
-    if (signingKey != null && signingPassword != null) {
-        useInMemoryPgpKeys(signingKey, signingPassword)
-        sign(publishing.publications)
-    }
+    useInMemoryPgpKeys(
+        findProperty("signingKey") as String?,
+        findProperty("signingPassword") as String?
+    )
+    sign(publishing.publications)
 }
