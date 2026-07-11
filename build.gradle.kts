@@ -1,12 +1,11 @@
 plugins {
-    `java-library`
-    `maven-publish`
-    signing
     kotlin("jvm") version "2.2.20"
-    id("org.jreleaser") version "1.18.0"
+    `java-library`
+    id("org.jetbrains.dokka") version "2.0.0"
+    id("com.vanniktech.maven.publish") version "0.34.0"
 }
 
-group = "me.jaksara"
+group = "io.github.trainingbear"
 version = "1.0.0"
 
 repositories {
@@ -16,68 +15,58 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation(kotlin("reflect"))
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
+
     api("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
     api("net.kyori:adventure-api:4.14.0")
     api("net.kyori:adventure-text-minimessage:4.14.0")
 }
 
 java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(17))
-    }
-
-    withSourcesJar()
-    withJavadocJar()
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 kotlin {
-    explicitApi()
     jvmToolchain(17)
+    explicitApi()
 }
 
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
+mavenPublishing {
+    publishToMavenCentral()
 
-            groupId = "io.github.trainingbear"
-            artifactId = "jaksara-inventory"
-            version = "1.0.0"
+    signAllPublications()
 
-            pom {
-                name.set("Jaksara Inventory")
-                description.set("Inventory / DSL framework for PaperMC")
-                url.set("https://github.com/TrainingBear/jaksara-inventory")
+    coordinates(
+        group.toString(),
+        "jaksara-inventory",
+        version.toString()
+    )
 
-                licenses {
-                    license {
-                        name.set("MIT License")
-                        url.set("https://opensource.org/licenses/MIT")
-                    }
-                }
+    pom {
+        name.set("Jaksara Inventory")
+        description.set("Inventory DSL framework for PaperMC")
+        inceptionYear.set("2026")
+        url.set("https://github.com/TrainingBear/jaksara-inventory")
 
-                developers {
-                    developer {
-                        id.set("TrainingBear")
-                        name.set("Kukuh Sudrajad")
-                    }
-                }
-
-                scm {
-                    url.set("https://github.com/TrainingBear/jaksara-inventory")
-                    connection.set("scm:git:https://github.com/TrainingBear/jaksara-inventory.git")
-                    developerConnection.set("scm:git:ssh://git@github.com/TrainingBear/jaksara-inventory.git")
-                }
+        licenses {
+            license {
+                name.set("MIT")
+                url.set("https://opensource.org/licenses/MIT")
             }
         }
+
+        developers {
+            developer {
+                id.set("TrainingBear")
+                name.set("Kukuh Sudrajad")
+            }
+        }
+
+        scm {
+            url.set("https://github.com/TrainingBear/jaksara-inventory")
+            connection.set("scm:git:git://github.com/TrainingBear/jaksara-inventory.git")
+            developerConnection.set("scm:git:ssh://git@github.com/TrainingBear/jaksara-inventory.git")
+        }
     }
-}
-signing {
-    useInMemoryPgpKeys(
-        findProperty("signingKey") as String?,
-        findProperty("signingPassword") as String?
-    )
-    sign(publishing.publications)
 }
