@@ -1,5 +1,6 @@
 package me.jaksara.inventory
 
+import me.jaksara.inventory.annotation.Menu
 import org.bukkit.Material
 import org.bukkit.Sound
 import org.bukkit.entity.Player

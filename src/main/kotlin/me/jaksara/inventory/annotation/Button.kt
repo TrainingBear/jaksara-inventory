@@ -1,4 +1,4 @@
-package me.jaksara.inventory
+package me.jaksara.inventory.annotation
 
 @DslMarker
 public annotation class Button()

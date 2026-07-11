@@ -1,5 +1,6 @@
 package me.jaksara.inventory
 
+import me.jaksara.inventory.annotation.Executor
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryAction
 import org.bukkit.event.inventory.InventoryClickEvent

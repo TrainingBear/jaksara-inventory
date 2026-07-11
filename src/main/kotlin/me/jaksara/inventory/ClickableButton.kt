@@ -1,5 +1,6 @@
 package me.jaksara.inventory
 
+import me.jaksara.inventory.annotation.Button
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.Material
@@ -9,7 +10,6 @@ import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
 import org.bukkit.persistence.PersistentDataType
-import org.bukkit.plugin.Plugin
 import java.util.UUID
 
 @Button
@@ -27,13 +27,13 @@ public class ClickableButton internal constructor(
     public var menu: InventoryMenuDsl? = null
     public var border: Boolean = false
 
-    private val s: ClickableButton.() -> Unit = {
-        this@ClickableButton.material = material
-        this@ClickableButton.executor = executor
-        this@ClickableButton.title = title
-        this@ClickableButton.item = item
-        this@ClickableButton.lore = lore
-        this@ClickableButton.menu = menu
+    private val s: ClickableButton.() -> Unit = new@{
+        this@new.material = this@ClickableButton.material
+        this@new.executor = this@ClickableButton.executor
+        this@new.title = this@ClickableButton.title
+        this@new.item = this@ClickableButton.item
+        this@new.lore = this@ClickableButton.lore
+        this@new.menu = this@ClickableButton.menu
     }
     public var filled: PageState<ClickableButton.() -> Unit>
 
@@ -135,6 +135,7 @@ public class ClickableButton internal constructor(
                 root.inv.setItem(index, button.item)
             } else root.inv.setItem(index, AIR)
         }
+//        root.plugin.server.broadcast("button with id: $id built!".deserialize())
     }
 
     /**

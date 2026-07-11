@@ -9,6 +9,7 @@ public object CustomMenu {
     public fun init(plugin: Plugin) {
         plugin.server.pluginManager.registerEvents(ChatInputListener(plugin), plugin)
         plugin.server.pluginManager.registerEvents(InventoryMenuListener(plugin), plugin)
+        plugin.logger.info("Custom Menu has been successfully initialized!")
     }
 
     /**
