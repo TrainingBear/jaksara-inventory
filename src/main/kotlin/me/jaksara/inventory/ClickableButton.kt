@@ -13,10 +13,10 @@ import org.bukkit.plugin.Plugin
 import java.util.UUID
 
 @Button
-public class ClickableButton(
-    private val root: InventoryMenuDsl,
-    private val id: Int,
-    private val event: InventoryOpenEvent
+public class ClickableButton internal constructor(
+    public val root: InventoryMenuDsl,
+    public val id: Int,
+    public val event: InventoryOpenEvent
 ) {
     public val player: Player = event.player as Player
     public var executor: ExecutionContext.() -> Unit = {}
@@ -76,16 +76,22 @@ public class ClickableButton(
 
     /**
      * Create a submenu for this button
+     * @param title Inventory title
+     * @param init inventory builder block
+     * @return [InventoryMenuDsl], created menu
      */
-    public fun createMenu(title: String, init: InventoryMenuDsl.() -> Unit) {
+    public fun createMenu(title: String, init: InventoryMenuDsl.() -> Unit) : InventoryMenuDsl {
         menu = InventoryMenuDsl(title, root.plugin)
         init(menu!!)
+        return menu!!
     }
 
     /**
-     * Fill button slots with items
-     * @param elements items to fill
-     * @param action builder for each item
+     * Fill a whole layout with slot [id] to [elements]
+     * @param elements the elements that will be placed inside layout
+     * @param action builder for each item/button. with
+     * @see [openNextPage]
+     * @see [openPrevPage]
      */
     public fun fill(elements: List<ItemStack>, action: (Int, ItemStack) -> ClickableButton.() -> Unit) {
         val result = mutableListOf<ClickableButton.() -> Unit>()
@@ -132,14 +138,14 @@ public class ClickableButton(
     }
 
     /**
-     * Refresh this button
+     * Refresh or update this [ClickableButton]
      */
     public fun refresh() {
         build()
     }
 
     /**
-     * Refresh all buttons in this menu
+     * Refresh or update this [ClickableButton] and all buttons inside current menu
      */
     public fun refreshAll() {
         for (button in root.buttons.values) {
@@ -163,6 +169,9 @@ public class ClickableButton(
         }
     }
 
+    /**
+     * Get player head texture
+     */
     public fun getHead(owner: UUID): ItemStack {
         return ItemStack(Material.PLAYER_HEAD).also {
             val meta = it.itemMeta as SkullMeta

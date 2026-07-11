@@ -13,8 +13,12 @@ import kotlin.math.max
 import kotlin.math.min
 
 
+/**
+ * Do not construct a Custom Menu manually. instead use [CustomMenu.createMenu] to
+ * start making Custom Menu
+ */
 @Menu
-public open class InventoryMenuDsl(public var title: String, public val plugin: Plugin) : InventoryHolder, Cloneable {
+public open class InventoryMenuDsl internal constructor(public var title: String, public val plugin: Plugin) : InventoryHolder, Cloneable {
     public var inv: Inventory = plugin.server.createInventory(this, 9)
     protected var layout: IntArray = intArrayOf(
         0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -32,25 +36,16 @@ public open class InventoryMenuDsl(public var title: String, public val plugin: 
     public val tasks: MutableList<Closeable> = mutableListOf<Closeable>()
 
     /**
-     * Create layout with size of divisor 9. (size % 9 == 0) Each element
-     * represents id of item. throw [IllegalArgumentException] if layout size
-     * not divisible by 9.
+     * Create layout that represent [buttons]/item placement. with each element of layout,
+     * identified as id of [buttons] or item.
+     *
+     * the size of [layout] must be divisible by 9
+     * (size % 9 == 0), and layout size not exceed 9x6 (54).
      * @param layout Layout id's
+     * @throws IllegalArgumentException if the layout size is not divisible by 9, or if the layout size exceed 9x6
      */
     public fun layout(vararg layout: Int) {
-        layout {
-            layout
-        }
-    }
-
-    /**
-     * Create layout with size of divisor 9. (size % 9 == 0) Each element
-     * represents id of item. throw [IllegalArgumentException] if layout size
-     * not divisible by 9.
-     * @param layout Layout id's
-     */
-    public fun layout(out: () -> IntArray) {
-        layout = out()
+        this.layout = layout
         if (layout.size % 9 != 0) throw IllegalArgumentException("You can't create an inventory with size of ${layout.size}, the inventory size must be divisible by 9 and != 0")
         indexedLayout.clear()
         for ((index, i) in layout.withIndex()) {
@@ -59,8 +54,9 @@ public open class InventoryMenuDsl(public var title: String, public val plugin: 
     }
 
     /**
-     * @param id target item id
+     * @param id target of item/button placement id
      * @return List of ItemStack at the given id
+     * @throws [NullPointerException] if [id] is not exist in [layout]
      */
     public fun getItem(id: Int): List<ItemStack?> {
         return indexedLayout[id]!!.map { inv.getItem(it) }
@@ -68,6 +64,9 @@ public open class InventoryMenuDsl(public var title: String, public val plugin: 
 
     /**
      * Template button for exit (close inventory)
+     * throw [NullPointerException] if [id] is not exist in [layout]
+     * @param id target of item/button placement id
+     * @throws [NullPointerException] if [id] is not exist in [layout]
      */
     public fun exit(id: Int, material: Material) {
         val init: ClickableButton.() -> Unit = border@{
@@ -82,8 +81,9 @@ public open class InventoryMenuDsl(public var title: String, public val plugin: 
 
     /**
      * Template button for border
-     * @param id target id
+     * @param id target of item/button placement id
      * @param material material
+     * @throws [NullPointerException] if [id] is not exist in [layout]
      */
     public fun border(id: Int, material: Material) {
         val init: ClickableButton.() -> Unit = border@{
@@ -104,12 +104,14 @@ public open class InventoryMenuDsl(public var title: String, public val plugin: 
 
     /**
      * Create a template button for option selection
-     * @param id target id
+     * @param id target of item/button placement id.
      * @param material target material
      * @param name button title
      * @param element options
      * @param lore description button
      * @param callback callback when selection changes
+     *
+     * @throws [NullPointerException] if [id] is not exist in [layout]
      */
     public fun optionButton(
         id: Int,
@@ -157,22 +159,28 @@ public open class InventoryMenuDsl(public var title: String, public val plugin: 
     }
 
     /**
-     * Create a custom button with a body
-     * @param id target id
+     * Create a button to Custom menu
+     * @param id target of item/button placement id.
      * @param init body/builder for the button
+     * @throws [NullPointerException] if [id] is not exist in [layout]
      */
     public fun button(id: Int, init: ClickableButton.() -> Unit) {
         futureButton[id] = init
     }
 
+    /**
+     * @param id target of item/button placement id.
+     * @return [ClickableButton]
+     * @throws [NullPointerException] if [id] is not exist in [layout]
+     */
     public fun getButton(id: Int): ClickableButton {
         return buttons[id]!!
     }
 
     /**
-     * Make player open this inventory
+     * Make [player] open this inventory with individually instance
      * @param player target player
-     * @param forceUpdate if true: it create a new inventory instance
+     * @param forceUpdate if [forceUpdate] true, it always creates a new inventory instance for [player]
      */
     @JvmOverloads
     public fun open(player: Player, forceUpdate: Boolean = false) {
@@ -187,10 +195,16 @@ public open class InventoryMenuDsl(public var title: String, public val plugin: 
         })
     }
 
+    /**
+     * Build a new inventory instance
+     */
     public fun build() {
         inv = plugin.server.createInventory(this, layout.size, title.deserialize())
     }
 
+    /**
+     * this [close] is getting called when player close this inventory instance
+     */
     public open fun close(event: InventoryCloseEvent) {
         tasks.forEach { it.close() }
         layout.toSet().forEach {

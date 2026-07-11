@@ -1,7 +1,9 @@
 plugins {
     `java-library`
     `maven-publish`
+    signing
     kotlin("jvm") version "2.2.20"
+    id("org.jreleaser") version "1.18.0"
 }
 
 group = "me.jaksara"
@@ -14,7 +16,6 @@ repositories {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib:2.2.20")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
     api("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
@@ -38,14 +39,47 @@ kotlin {
 
 publishing {
     publications {
-        create<MavenPublication>("maven") {
+        create<MavenPublication>("mavenJava") {
             from(components["java"])
-            groupId = "me.jaksara"
-            artifactId = "inventory"
+
+            groupId = "io.github.trainingbear"
+            artifactId = "jaksara-inventory"
             version = "1.0.0"
+
+            pom {
+                name.set("Jaksara Inventory")
+                description.set("Inventory / DSL framework for PaperMC")
+                url.set("https://github.com/TrainingBear/jaksara-inventory")
+
+                licenses {
+                    license {
+                        name.set("MIT License")
+                        url.set("https://opensource.org/licenses/MIT")
+                    }
+                }
+
+                developers {
+                    developer {
+                        id.set("TrainingBear")
+                        name.set("Kukuh Sudrajad")
+                    }
+                }
+
+                scm {
+                    url.set("https://github.com/TrainingBear/jaksara-inventory")
+                    connection.set("scm:git:https://github.com/TrainingBear/jaksara-inventory.git")
+                    developerConnection.set("scm:git:ssh://git@github.com/TrainingBear/jaksara-inventory.git")
+                }
+            }
         }
     }
-    repositories {
-        mavenLocal()
+}
+signing {
+    val signingKey: String? by project
+    val signingPassword: String? by project
+
+    if (signingKey != null && signingPassword != null) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign(publishing.publications)
     }
 }

@@ -4,8 +4,9 @@ import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryAction
 import org.bukkit.event.inventory.InventoryClickEvent
 
+@ConsistentCopyVisibility
 @Executor
-public data class ExecutionContext(val invClickEvent: InventoryClickEvent) {
+public data class ExecutionContext internal constructor(val invClickEvent: InventoryClickEvent) {
     val player: Player = invClickEvent.whoClicked as Player
     val action: InventoryAction = invClickEvent.action
 
