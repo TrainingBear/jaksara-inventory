@@ -18,7 +18,7 @@ dependencies {
     implementation(kotlin("reflect"))
     implementation("com.github.ben-manes.caffeine:caffeine:3.2.4")
 
-    api("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
     api("net.kyori:adventure-api:4.14.0")
     api("net.kyori:adventure-text-minimessage:4.14.0")
 }
