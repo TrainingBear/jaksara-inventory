@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "io.github.trainingbear"
-version = "1.0.0"
+version = "1.1.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -35,13 +35,15 @@ kotlin {
 mavenPublishing {
     publishToMavenCentral()
 
-    signAllPublications()
-
     coordinates(
         group.toString(),
         "jaksara-inventory",
         version.toString()
     )
+
+    if (!version.toString().endsWith("-SNAPSHOT")) {
+        signAllPublications()
+    }
 
     pom {
         name.set("Jaksara Inventory")

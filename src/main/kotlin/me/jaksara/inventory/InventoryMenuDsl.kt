@@ -119,7 +119,7 @@ public open class InventoryMenuDsl internal constructor(public var title: String
         material: Material,
         name: String,
         element: List<String>,
-        lore: List<String>,
+        lore: List<String> = emptyList(),
         callback: (String) -> Unit = {}
     ) {
         val init: ClickableButton.() -> Unit = option@{
@@ -130,15 +130,17 @@ public open class InventoryMenuDsl internal constructor(public var title: String
             val completeLore = mutableListOf<String>()
             completeLore += lore
             completeLore += ""
-            element.forEachIndexed { index, string ->
-                completeLore += this@InventoryMenuDsl.getOptionLine(id, index, element)
+            val option = mutableListOf("None")
+            option.addAll(element)
+            option.forEachIndexed { index, string ->
+                completeLore += this@InventoryMenuDsl.getOptionLine(id, index, option)
             }
             lore(*completeLore.toTypedArray())
             onClick {
                 if (invClickEvent.isLeftClick) {
                     this@InventoryMenuDsl.selectedElement[id] = this@InventoryMenuDsl.selectedElement[id]!! + 1
                     this@InventoryMenuDsl.selectedElement[id] =
-                        min(this@InventoryMenuDsl.selectedElement[id]!!, element.size - 1)
+                        min(this@InventoryMenuDsl.selectedElement[id]!!, option.size - 1)
                 }
                 if (invClickEvent.isRightClick) {
                     this@InventoryMenuDsl.selectedElement[id] = this@InventoryMenuDsl.selectedElement[id]!! - 1
@@ -147,11 +149,11 @@ public open class InventoryMenuDsl internal constructor(public var title: String
                 val completeLore = mutableListOf<String>()
                 completeLore += lore
                 completeLore += ""
-                element.forEachIndexed { index, string ->
-                    completeLore += this@InventoryMenuDsl.getOptionLine(id, index, element)
+                option.forEachIndexed { index, string ->
+                    completeLore += this@InventoryMenuDsl.getOptionLine(id, index, option)
                 }
                 lore(*completeLore.toTypedArray())
-                callback(element[this@InventoryMenuDsl.selectedElement[id]!!])
+                callback(option[this@InventoryMenuDsl.selectedElement[id]!!])
                 player.playSound(player.location, Sound.UI_BUTTON_CLICK, 1f, 1f)
                 refresh()
             }

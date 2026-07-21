@@ -98,7 +98,17 @@ public class ClickableButton internal constructor(
         elements.forEachIndexed { index, item ->
             result.add(action(index, item))
         }
-        filled = PageState(root.indexedLayout[id]!!.size, result)
+        fill(result)
+    }
+    public fun fill(size: Int, action: (Int) -> ClickableButton.() -> Unit) {
+        val result = mutableListOf<ClickableButton.() -> Unit>()
+        for(index in 1 .. size){
+            result.add(action(index))
+        }
+        fill(result)
+    }
+    public fun fill(buttons: List<ClickableButton.() -> Unit>){
+        filled = PageState(root.indexedLayout[id]!!.size, buttons)
     }
 
     /**
