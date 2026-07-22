@@ -18,6 +18,7 @@ import java.time.Duration
 import java.util.UUID
 
 internal val AIR: ItemStack = ItemStack(Material.AIR)
+internal val cachedKey = mutableMapOf<String, NamespacedKey>()
 internal val cache: Cache<UUID, PlayerData> = Caffeine.newBuilder()
     .expireAfterAccess(Duration.ofMinutes(20))
     .removalListener(RemovalListener<UUID, PlayerData> { key, value, cause ->
@@ -42,6 +43,7 @@ internal fun String.error(plugin: Plugin, player: Player? = null) {
 }
 
 internal fun String.deserialize(vararg tags: TagResolver): Component = MiniMessage.miniMessage().deserialize(this, *tags).decoration(TextDecoration.ITALIC, false)
-internal fun String.namespacedKey(): NamespacedKey = NamespacedKey("jaksara", this.lowercase().replace(" ", "_"))
+internal fun String.regex(): String = lowercase().replace(Regex("[^a-z0-9._/-]"), "_")
+internal fun String.namespacedKey(): NamespacedKey = cachedKey.getOrPut(this) { NamespacedKey("jaksara", regex()) }
 internal fun Component.plainString() = rawString()
 internal fun Component.rawString(): String = PlainTextComponentSerializer.plainText().serialize(this)
