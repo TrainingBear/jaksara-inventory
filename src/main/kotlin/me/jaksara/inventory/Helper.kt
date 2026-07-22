@@ -18,7 +18,7 @@ import java.time.Duration
 import java.util.UUID
 
 internal val AIR: ItemStack = ItemStack(Material.AIR)
-internal val cachedKey = mutableMapOf<String, NamespacedKey>()
+internal val cachedKey = HashMap<String, NamespacedKey>()
 internal val cache: Cache<UUID, PlayerData> = Caffeine.newBuilder()
     .expireAfterAccess(Duration.ofMinutes(20))
     .removalListener(RemovalListener<UUID, PlayerData> { key, value, cause ->
