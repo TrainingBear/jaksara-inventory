@@ -3,8 +3,8 @@ package me.jaksara.inventory
 import kotlin.math.max
 import kotlin.math.min
 
-public class PageState<T>(viewSize: Int, elements: List<T>) {
-    public val pages: MutableMap<Int, List<T>> = mutableMapOf<Int, List<T>>()
+public class Paginator<T>(viewSize: Int, elements: List<T>) {
+    public val pages: HashMap<Int, List<T>> = HashMap()
     public var page: Int = 1;
     init {
         var page = 1;

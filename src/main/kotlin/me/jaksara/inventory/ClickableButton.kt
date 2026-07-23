@@ -35,7 +35,7 @@ public class ClickableButton internal constructor(
         this@new.lore = this@ClickableButton.lore
         this@new.menu = this@ClickableButton.menu
     }
-    public var filled: PageState<ClickableButton.() -> Unit>
+    public var filled: Paginator<ClickableButton.() -> Unit>
 
     init {
         val result = mutableListOf<ClickableButton.() -> Unit>()
@@ -43,7 +43,7 @@ public class ClickableButton internal constructor(
         repeat(viewSize) {
             result.add(s)
         }
-        filled = PageState(viewSize, result)
+        filled = Paginator(viewSize, result)
     }
 
     /**
@@ -102,13 +102,13 @@ public class ClickableButton internal constructor(
     }
     public fun fill(size: Int, action: (Int) -> ClickableButton.() -> Unit) {
         val result = mutableListOf<ClickableButton.() -> Unit>()
-        for(index in 1 .. size){
+        for(index in 0..<size){
             result.add(action(index))
         }
         fill(result)
     }
     public fun fill(buttons: List<ClickableButton.() -> Unit>){
-        filled = PageState(root.indexedLayout[id]!!.size, buttons)
+        filled = Paginator(root.indexedLayout[id]!!.size, buttons)
     }
 
     /**
@@ -127,7 +127,7 @@ public class ClickableButton internal constructor(
         refresh()
     }
 
-    public fun build() {
+    public fun init() {
         if (filled.pages.isEmpty()) return
         val iterator = filled.get().iterator()
         root.indexedLayout[id]!!.forEach { index ->
@@ -148,13 +148,22 @@ public class ClickableButton internal constructor(
 //        root.plugin.server.broadcast("button with id: $id built!".deserialize())
     }
 
+    public fun rebuild() {
+        root.futureButton[id]!!.invoke(this)
+        refresh()
+    }
     /**
      * Refresh or update this [ClickableButton]
      */
     public fun refresh() {
-        build()
+        init()
     }
 
+    public fun rebuildAll() {
+        for (button in root.buttons.values) {
+            button.rebuildAll()
+        }
+    }
     /**
      * Refresh or update this [ClickableButton] and all buttons inside current menu
      */

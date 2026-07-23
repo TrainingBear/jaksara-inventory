@@ -27,14 +27,13 @@ public open class InventoryMenuDsl internal constructor(public var title: String
         0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0, 0, 0, 0, 0, 0,
     )
-    public var indexedLayout: MutableMap<Int, MutableList<Int>> = mutableMapOf<Int, MutableList<Int>>()
+    public var indexedLayout: HashMap<Int, MutableList<Int>> = HashMap()
         private set
 
-    public val executor: MutableMap<Int, ExecutionContext.() -> Unit> = mutableMapOf<Int, ExecutionContext.() -> Unit>()
-    public val futureButton: MutableMap<Int, ClickableButton.() -> Unit> =
-        mutableMapOf()
-    public val buttons: MutableMap<Int, ClickableButton> = mutableMapOf<Int, ClickableButton>()
-    public val tasks: MutableList<Closeable> = mutableListOf<Closeable>()
+    public val executor: HashMap<Int, ExecutionContext.() -> Unit> = HashMap()
+    public val futureButton: HashMap<Int, ClickableButton.() -> Unit> = HashMap()
+    public val buttons: HashMap<Int, ClickableButton> = HashMap()
+    public val tasks: MutableList<Closeable> = mutableListOf()
 
     /**
      * Create layout that represent [buttons]/item placement. with each element of layout,
@@ -95,7 +94,7 @@ public open class InventoryMenuDsl internal constructor(public var title: String
         futureButton[id] = init
     }
 
-    protected val selectedElement: MutableMap<Int, Int> = mutableMapOf<Int, Int>()
+    protected val selectedElement: HashMap<Int, Int> = HashMap()
     private fun getOptionLine(id: Int, idx: Int, lines: List<String>): String {
         val selected = selectedElement[id]!!
         return if (selected == idx) {

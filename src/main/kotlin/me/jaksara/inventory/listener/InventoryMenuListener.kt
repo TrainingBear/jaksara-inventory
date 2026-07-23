@@ -1,6 +1,5 @@
 package me.jaksara.inventory.listener
 
-import com.sun.source.util.Plugin
 import me.jaksara.inventory.ClickableButton
 import me.jaksara.inventory.ExecutionContext
 import me.jaksara.inventory.InventoryMenuDsl
@@ -37,7 +36,7 @@ internal class InventoryMenuListener(public val plugin: org.bukkit.plugin.Plugin
             try {
                 val button = ClickableButton(dsl, id, e)
                 init.invoke(button)
-                button.build()
+                button.init()
                 dsl.buttons[id] = button
             } catch (e: Exception) {
                 "Failed to load button.id: $id from ${dsl.title} inventory!".error(plugin)
