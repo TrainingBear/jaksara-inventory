@@ -2,6 +2,7 @@ package me.jaksara.inventory
 
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap
 import me.jaksara.inventory.annotation.Menu
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.Sound
 import org.bukkit.entity.Player
@@ -61,7 +62,7 @@ public open class InventoryMenuDsl internal constructor(public var title: String
      * @return List of ItemStack at the given id
      * @throws [NullPointerException] if [id] is not exist in [layout]
      */
-    public fun getItem(id: Int): List<ItemStack?> {
+    internal fun getItem(id: Int): List<ItemStack?> {
         return indexedLayout[id]!!.map { inv.getItem(it) }
     }
 
@@ -97,11 +98,11 @@ public open class InventoryMenuDsl internal constructor(public var title: String
         futureButton[id] = init
     }
 
-    protected val selectedElement: Int2IntOpenHashMap = Int2IntOpenHashMap().apply {
+    internal val selectedElement: Int2IntOpenHashMap = Int2IntOpenHashMap().apply {
         defaultReturnValue(-1)
     }
 
-    private fun getOptionLine(id: Int, idx: Int, lines: List<String>): String {
+    internal fun getOptionLine(id: Int, idx: Int, lines: List<String>): String {
         val selected = selectedElement[id]
         return if (selected == idx) {
             "<green> <bold>><reset><green> ${lines[idx]}"
@@ -128,12 +129,14 @@ public open class InventoryMenuDsl internal constructor(public var title: String
         lore: List<String> = emptyList(),
         options: List<String>,
         selectedIndex: Int = -1,
-        callback: (String) -> Unit = {}
+        visible: Boolean = true,
+        callback: ExecutionContext.(String) -> Unit = {}
     ) {
         val init: ClickableButton.() -> Unit = option@{
             selectedElement[id] = selectedIndex
             this@option.material = material
             this@option.title = title
+            setVisible(visible)
             val completeLore = mutableListOf<String>()
             completeLore += lore
             for (i in 1 until options.size) completeLore += this@InventoryMenuDsl.getOptionLine(id, i, options)
@@ -148,6 +151,7 @@ public open class InventoryMenuDsl internal constructor(public var title: String
                     this@InventoryMenuDsl.selectedElement[id] = this@InventoryMenuDsl.selectedElement[id] - 1
                     this@InventoryMenuDsl.selectedElement[id] = max(this@InventoryMenuDsl.selectedElement[id], 0)
                 } else return@onClick
+                Bukkit.broadcast("Selected ${this@InventoryMenuDsl.selectedElement[id]}".deserialize())
                 val completeLore = mutableListOf<String>()
                 completeLore += lore
                 for (i in 1 until options.size) completeLore += this@InventoryMenuDsl.getOptionLine(id, i, options)
@@ -180,9 +184,10 @@ public open class InventoryMenuDsl internal constructor(public var title: String
         lore: List<String> = emptyList(),
         options: List<String>,
         selectedElement: String = "",
-        callback: (String) -> Unit = {}
-    ){
-        optionButton(id, material, title, lore, options, options.indexOf(selectedElement), callback)
+        visible: Boolean = true,
+        callback: ExecutionContext.(String) -> Unit = {}
+    ) {
+        optionButton(id, material, title, lore, options, options.indexOf(selectedElement), visible, callback)
     }
 
     /**
@@ -204,11 +209,13 @@ public open class InventoryMenuDsl internal constructor(public var title: String
         title: String,
         lore: List<String> = emptyList(),
         list: MutableList<String>,
-        callback: (MutableList<String>) -> Unit = {}
+        visible: Boolean = true,
+        callback: ExecutionContext.(MutableList<String>) -> Unit = {}
     ) {
         val init: ClickableButton.() -> Unit = list@{
             this.material = material
             this.title = title
+            this.setVisible(visible)
             val completeLore = mutableListOf<String>()
             completeLore.addAll(lore)
             completeLore += ""
@@ -269,7 +276,7 @@ public open class InventoryMenuDsl internal constructor(public var title: String
      * @return [ClickableButton]
      * @throws [NullPointerException] if [id] is not exist in [layout]
      */
-    public fun getButton(id: Int): ClickableButton {
+    internal fun getButton(id: Int): ClickableButton {
         return buttons[id]!!
     }
 
@@ -295,7 +302,7 @@ public open class InventoryMenuDsl internal constructor(public var title: String
     /**
      * Build a new inventory instance
      */
-    public fun build() {
+    internal fun build() {
         inv = plugin.server.createInventory(this, layout.size, title.deserialize())
     }
 

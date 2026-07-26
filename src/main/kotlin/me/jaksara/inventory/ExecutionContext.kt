@@ -4,6 +4,7 @@ import me.jaksara.inventory.annotation.Executor
 import net.kyori.adventure.title.Title
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.inventory.ItemStack
 
 @ConsistentCopyVisibility
 @Executor
@@ -29,6 +30,20 @@ public data class ExecutionContext internal constructor(
             player.jplayer().chatInputCallback = null
         }
     }
+
+    /**
+     * @param id target of item/button placement id inside this inventory
+     * @return List of ItemStack at the given id
+     * @throws [NullPointerException] if [id] is not exist in this [InventoryMenuDsl.layout]
+     */
+    public fun getItem(id: Int): List<ItemStack?> = source.root.getItem(id)
+
+    /**
+     * @param id target of item/button placement id inside this inventory.
+     * @return [ClickableButton]
+     * @throws [NullPointerException] if [id] is not exist in this [InventoryMenuDsl.layout]
+     */
+    public fun getButton(id: Int): ClickableButton = source.root.getButton(id)
 
     /**
      * Refresh or update button appearance that only reapply [ClickableButton.lore], [ClickableButton.title], [ClickableButton.material]

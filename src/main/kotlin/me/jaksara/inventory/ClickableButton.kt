@@ -134,6 +134,7 @@ public class ClickableButton internal constructor(
      * @param state when true, it will appear. or else it will disappear.
      */
     public fun setVisible(state: Boolean){
+        if(state==visible) return
         visible = state
         refresh()
     }
@@ -170,6 +171,7 @@ public class ClickableButton internal constructor(
                 }
                 root.executor[delta] = this
                 if(visible) root.inv.setItem(index, button.item)
+                else root.inv.setItem(index, AIR)
             } else root.inv.setItem(index, AIR)
         }
 //        root.plugin.server.broadcast("button with id: $id built!".deserialize())
