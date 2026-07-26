@@ -59,9 +59,16 @@ public class ClickableButton internal constructor(
      * @param lines lore lines as Components
      */
     public fun lore(vararg lines: Component) {
-        lore = {
-            lines.toList()
-        }
+        val toList = lines.toList()
+        lore = { toList }
+    }
+
+    /**
+     * Set lore using Component objects
+     * @param lines lore lines as Components
+     */
+    public fun loreAsComponents(lines: List<Component>) {
+        lore = { lines }
     }
 
     /**
@@ -69,9 +76,17 @@ public class ClickableButton internal constructor(
      * @param lines lore lines as MiniMessage strings
      */
     public fun lore(vararg lines: String) {
-        lore = {
-            lines.map { it.deserialize() }
-        }
+        val deserialized = lines.map { it.deserialize() }
+        lore = { deserialized }
+    }
+
+    /**
+     * Set lore using Strings with MiniMessage support
+     * @param lines lore lines as MiniMessage strings
+     */
+    public fun lore(lines: List<String>) {
+        val deserialized = lines.map { it.deserialize() }
+        lore = { deserialized }
     }
 
     /**
@@ -80,7 +95,7 @@ public class ClickableButton internal constructor(
      * @param init inventory builder block
      * @return [InventoryMenuDsl], created menu
      */
-    public fun createMenu(title: String, init: InventoryMenuDsl.() -> Unit) : InventoryMenuDsl {
+    public fun createMenu(title: String, init: InventoryMenuDsl.() -> Unit): InventoryMenuDsl {
         menu = InventoryMenuDsl(title, root.plugin)
         init(menu!!)
         return menu!!
@@ -100,14 +115,16 @@ public class ClickableButton internal constructor(
         }
         fill(result)
     }
+
     public fun fill(size: Int, action: (Int) -> ClickableButton.() -> Unit) {
         val result = mutableListOf<ClickableButton.() -> Unit>()
-        for(index in 0..<size){
+        for (index in 0..<size) {
             result.add(action(index))
         }
         fill(result)
     }
-    public fun fill(buttons: List<ClickableButton.() -> Unit>){
+
+    public fun fill(buttons: List<ClickableButton.() -> Unit>) {
         filled = Paginator(root.indexedLayout[id]!!.size, buttons)
     }
 
@@ -152,6 +169,7 @@ public class ClickableButton internal constructor(
         root.futureButton[id]!!.invoke(this)
         refresh()
     }
+
     /**
      * Refresh or update this [ClickableButton]
      */
@@ -164,6 +182,7 @@ public class ClickableButton internal constructor(
             button.rebuildAll()
         }
     }
+
     /**
      * Refresh or update this [ClickableButton] and all buttons inside current menu
      */

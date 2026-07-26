@@ -1,9 +1,11 @@
 package me.jaksara.inventory
 
+import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap
 import me.jaksara.inventory.annotation.Menu
 import org.bukkit.Material
 import org.bukkit.Sound
 import org.bukkit.entity.Player
+import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
@@ -19,7 +21,8 @@ import kotlin.math.min
  * start making Custom Menu
  */
 @Menu
-public open class InventoryMenuDsl internal constructor(public var title: String, public val plugin: Plugin) : InventoryHolder, Cloneable {
+public open class InventoryMenuDsl internal constructor(public var title: String, public val plugin: Plugin) :
+    InventoryHolder, Cloneable {
     public var inv: Inventory = plugin.server.createInventory(this, 9)
     protected var layout: IntArray = intArrayOf(
         0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -94,9 +97,12 @@ public open class InventoryMenuDsl internal constructor(public var title: String
         futureButton[id] = init
     }
 
-    protected val selectedElement: HashMap<Int, Int> = HashMap()
+    protected val selectedElement: Int2IntOpenHashMap = Int2IntOpenHashMap().apply {
+        defaultReturnValue(-1)
+    }
+
     private fun getOptionLine(id: Int, idx: Int, lines: List<String>): String {
-        val selected = selectedElement[id]!!
+        val selected = selectedElement[id]
         return if (selected == idx) {
             "<green> <bold>><reset><green> ${lines[idx]}"
         } else "<gray> - ${lines[idx]}"
@@ -106,54 +112,132 @@ public open class InventoryMenuDsl internal constructor(public var title: String
      * Create a template button for option selection
      * @param id target of item/button placement id.
      * @param material target material
-     * @param name button title
-     * @param element options
+     * @param title button title
+     * @param options options
+     * @param selectedIndex the selected element position. in range 0 <= [selectedIndex] < [List.size]. it specified -1 by default, meaning has no selected element
      * @param lore description button
      * @param callback callback when selection changes
      *
      * @throws [NullPointerException] if [id] is not exist in [layout]
+     * @see listButton
      */
     public fun optionButton(
         id: Int,
         material: Material,
-        name: String,
-        element: List<String>,
+        title: String,
         lore: List<String> = emptyList(),
+        options: List<String>,
+        selectedIndex: Int = -1,
         callback: (String) -> Unit = {}
     ) {
         val init: ClickableButton.() -> Unit = option@{
-            this@InventoryMenuDsl.selectedElement[id] = 0
-
+            selectedElement[id] = selectedIndex
             this@option.material = material
-            this@option.title = name
+            this@option.title = title
             val completeLore = mutableListOf<String>()
             completeLore += lore
-            completeLore += ""
-            val option = mutableListOf("None")
-            option.addAll(element)
-            option.forEachIndexed { index, string ->
-                completeLore += this@InventoryMenuDsl.getOptionLine(id, index, option)
-            }
+            for (i in 1 until options.size) completeLore += this@InventoryMenuDsl.getOptionLine(id, i, options)
+
             lore(*completeLore.toTypedArray())
             onClick {
                 if (invClickEvent.isLeftClick) {
-                    this@InventoryMenuDsl.selectedElement[id] = this@InventoryMenuDsl.selectedElement[id]!! + 1
+                    this@InventoryMenuDsl.selectedElement[id] = this@InventoryMenuDsl.selectedElement[id] + 1
                     this@InventoryMenuDsl.selectedElement[id] =
-                        min(this@InventoryMenuDsl.selectedElement[id]!!, option.size - 1)
-                }
-                if (invClickEvent.isRightClick) {
-                    this@InventoryMenuDsl.selectedElement[id] = this@InventoryMenuDsl.selectedElement[id]!! - 1
-                    this@InventoryMenuDsl.selectedElement[id] = max(this@InventoryMenuDsl.selectedElement[id]!!, 0)
-                }
+                        min(this@InventoryMenuDsl.selectedElement[id], options.size - 1)
+                } else if (invClickEvent.isRightClick) {
+                    this@InventoryMenuDsl.selectedElement[id] = this@InventoryMenuDsl.selectedElement[id] - 1
+                    this@InventoryMenuDsl.selectedElement[id] = max(this@InventoryMenuDsl.selectedElement[id], 0)
+                } else return@onClick
                 val completeLore = mutableListOf<String>()
                 completeLore += lore
-                completeLore += ""
-                option.forEachIndexed { index, string ->
-                    completeLore += this@InventoryMenuDsl.getOptionLine(id, index, option)
-                }
+                for (i in 1 until options.size) completeLore += this@InventoryMenuDsl.getOptionLine(id, i, options)
                 lore(*completeLore.toTypedArray())
-                callback(option[this@InventoryMenuDsl.selectedElement[id]!!])
+                callback(options[this@InventoryMenuDsl.selectedElement[id]])
                 player.playSound(player.location, Sound.UI_BUTTON_CLICK, 1f, 1f)
+                refresh()
+            }
+        }
+        futureButton[id] = init
+    }
+
+    /**
+     * Create a template button for option selection
+     * @param id target of item/button placement id.
+     * @param material target material
+     * @param title button title
+     * @param options options
+     * @param selectedElement the selected element of [options]. if the element is not inside [options] it will  be unselected
+     * @param lore description button
+     * @param callback callback when selection changes
+     *
+     * @throws [NullPointerException] if [id] is not exist in [layout]
+     * @see listButton
+     */
+    public fun optionButton(
+        id: Int,
+        material: Material,
+        title: String,
+        lore: List<String> = emptyList(),
+        options: List<String>,
+        selectedElement: String = "",
+        callback: (String) -> Unit = {}
+    ){
+        optionButton(id, material, title, lore, options, options.indexOf(selectedElement), callback)
+    }
+
+    /**
+     * Create a template button for list button
+     * @param id target of item/button placement id.
+     * @param material target material
+     * @param title button title
+     * @param lore description button
+     * @param list container for storing element
+     * @param callback callback when selection changes. with param [list]
+     *
+     * @throws [NullPointerException] if [id] is not exist in [layout]
+     * @see optionButton
+     */
+    @JvmOverloads
+    public fun listButton(
+        id: Int,
+        material: Material,
+        title: String,
+        lore: List<String> = emptyList(),
+        list: MutableList<String>,
+        callback: (MutableList<String>) -> Unit = {}
+    ) {
+        val init: ClickableButton.() -> Unit = list@{
+            this.material = material
+            this.title = title
+            val completeLore = mutableListOf<String>()
+            completeLore.addAll(lore)
+            completeLore += ""
+            completeLore += "<yellow>Left Click to add element"
+            completeLore += "<yellow>Middle Click to remove last element"
+            completeLore += "<yellow>Right Click to remove specified element"
+            for (string in list)
+                completeLore += "<gray> - <white>$string"
+
+            this.lore(completeLore)
+            onClick {
+                if (invClickEvent.isLeftClick) getPlayerChatInput { element ->
+                    list.add(element)
+                }
+                else if (invClickEvent.isRightClick) getPlayerChatInput { element ->
+                    list.remove(element)
+                }
+                else if (invClickEvent.click == ClickType.MIDDLE) list.removeLast()
+                else return@onClick
+                callback(list)
+                val completeLore = mutableListOf<String>()
+                completeLore.addAll(lore)
+                for (string in list)
+                    completeLore += "<gray> - <white>$string"
+                completeLore += ""
+                completeLore += "<yellow>Left Click to add element"
+                completeLore += "<yellow>Middle Click to remove last element"
+                completeLore += "<yellow>Right Click to remove specified element"
+                this@list.lore(completeLore)
                 refresh()
             }
         }
@@ -171,6 +255,16 @@ public open class InventoryMenuDsl internal constructor(public var title: String
     }
 
     /**
+     * Create a button to Custom menu
+     * @param id target of item/button placement id.
+     * @param init body/builder for the button
+     * @throws [NullPointerException] if [id] is not exist in [layout]
+     */
+    public fun createButton(id: Int, init: ClickableButton.() -> Unit) {
+        button(id, init)
+    }
+
+    /**
      * @param id target of item/button placement id.
      * @return [ClickableButton]
      * @throws [NullPointerException] if [id] is not exist in [layout]
@@ -185,16 +279,17 @@ public open class InventoryMenuDsl internal constructor(public var title: String
      * @param forceUpdate if [forceUpdate] true, it always creates a new inventory instance for [player]
      */
     @JvmOverloads
-    public fun open(player: Player, forceUpdate: Boolean = false) {
+    public fun open(player: Player, forceUpdate: Boolean = false): Inventory {
         if (forceUpdate) {
             build()
             player.openInventory(inv)
-            return
+            return inv
         }
-        player.openInventory(player.jplayer().inventories.getOrPut(title) {
+        player.openInventory(player.jplayer().inventories.get(title) {
             build()
             inv
         })
+        return inv
     }
 
     /**
