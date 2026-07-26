@@ -3,9 +3,8 @@ package me.jaksara.inventory
 import com.github.benmanes.caffeine.cache.Cache
 import com.github.benmanes.caffeine.cache.Caffeine
 import org.bukkit.inventory.Inventory
-import java.util.UUID
 
-public class PlayerData(uuid: UUID) {
+public class PlayerData {
     public var chatInputCallback: ((String) -> Unit)? = null
     public val inventories: Cache<String, Inventory> = Caffeine.newBuilder()
         .expireAfterAccess(CustomMenu.expireAfterAccessDuration)

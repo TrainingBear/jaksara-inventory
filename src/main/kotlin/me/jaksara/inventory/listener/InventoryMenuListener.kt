@@ -12,24 +12,27 @@ import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.persistence.PersistentDataType
 
-internal class InventoryMenuListener(public val plugin: org.bukkit.plugin.Plugin) : Listener {
+internal class InventoryMenuListener(val plugin: org.bukkit.plugin.Plugin) : Listener {
     @EventHandler
-    public fun invClick(e: InventoryClickEvent) {
+    fun invClick(e: InventoryClickEvent) {
         if (e.inventory.holder !is InventoryMenuDsl) return
         val dsl = e.inventory.holder as InventoryMenuDsl
         val id =
-            e.currentItem?.itemMeta?.persistentDataContainer?.get(dsl.title.namespacedKey(), PersistentDataType.INTEGER) ?: return
+            e.currentItem?.itemMeta?.persistentDataContainer?.get(dsl.title.namespacedKey(), PersistentDataType.INTEGER)
+                ?: return
         e.isCancelled = true
         try {
-            val context = ExecutionContext(e);
-            dsl.executor[id]!!.invoke(context)
+            val executor = dsl.executor[id]!!
+            val context = ExecutionContext(e, executor)
+            executor.executor.invoke(context)
         } catch (e: Exception) {
             "Failed to execute button with id: $id from ${dsl.title}!".error(plugin)
+            throw e
         }
     }
 
     @EventHandler
-    public fun invOpen(e: InventoryOpenEvent) {
+    fun invOpen(e: InventoryOpenEvent) {
         if (e.inventory.holder !is InventoryMenuDsl) return
         val dsl = e.inventory.holder as InventoryMenuDsl
         dsl.futureButton.forEach { (id, init) ->
@@ -46,7 +49,7 @@ internal class InventoryMenuListener(public val plugin: org.bukkit.plugin.Plugin
     }
 
     @EventHandler
-    public fun invClose(e: InventoryCloseEvent) {
+    fun invClose(e: InventoryCloseEvent) {
         if (e.inventory.holder !is InventoryMenuDsl) return
         val dsl = e.inventory.holder as InventoryMenuDsl
         try {

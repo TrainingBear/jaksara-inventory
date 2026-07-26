@@ -28,7 +28,7 @@ internal val cache: Cache<UUID, PlayerData> = Caffeine.newBuilder()
 
 internal fun Player.jplayer(): PlayerData {
     return cache.get(uniqueId) {
-        PlayerData(uniqueId)
+        PlayerData()
     }
 }
 

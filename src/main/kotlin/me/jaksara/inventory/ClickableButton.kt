@@ -2,8 +2,8 @@ package me.jaksara.inventory
 
 import me.jaksara.inventory.annotation.Button
 import net.kyori.adventure.text.Component
-import org.bukkit.Bukkit
 import org.bukkit.Material
+import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.inventory.ItemFlag
@@ -11,7 +11,6 @@ import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
 import org.bukkit.persistence.PersistentDataType
 import java.util.UUID
-
 @Button
 public class ClickableButton internal constructor(
     public val root: InventoryMenuDsl,
@@ -26,6 +25,8 @@ public class ClickableButton internal constructor(
     public var item: ItemStack = ItemStack(material)
     public var menu: InventoryMenuDsl? = null
     public var border: Boolean = false
+    public var visible: Boolean = true
+        private set
 
     private val s: ClickableButton.() -> Unit = new@{
         this@new.material = this@ClickableButton.material
@@ -129,6 +130,15 @@ public class ClickableButton internal constructor(
     }
 
     /**
+     * Make this button disappear or appear. [visible] is true by default
+     * @param state when true, it will appear. or else it will disappear.
+     */
+    public fun setVisible(state: Boolean){
+        visible = state
+        refresh()
+    }
+
+    /**
      * Open the next page
      */
     public fun openNextPage() {
@@ -144,7 +154,7 @@ public class ClickableButton internal constructor(
         refresh()
     }
 
-    public fun init() {
+    internal fun init() {
         if (filled.pages.isEmpty()) return
         val iterator = filled.get().iterator()
         root.indexedLayout[id]!!.forEach { index ->
@@ -158,14 +168,14 @@ public class ClickableButton internal constructor(
                 button.item.editMeta {
                     it.persistentDataContainer.set(root.title.namespacedKey(), PersistentDataType.INTEGER, delta)
                 }
-                root.executor[delta] = button.executor
-                root.inv.setItem(index, button.item)
+                root.executor[delta] = this
+                if(visible) root.inv.setItem(index, button.item)
             } else root.inv.setItem(index, AIR)
         }
 //        root.plugin.server.broadcast("button with id: $id built!".deserialize())
     }
 
-    public fun rebuild() {
+    internal fun rebuild() {
         root.futureButton[id]!!.invoke(this)
         refresh()
     }
@@ -173,11 +183,11 @@ public class ClickableButton internal constructor(
     /**
      * Refresh or update this [ClickableButton]
      */
-    public fun refresh() {
+    internal fun refresh() {
         init()
     }
 
-    public fun rebuildAll() {
+    internal fun rebuildAll() {
         for (button in root.buttons.values) {
             button.rebuildAll()
         }
@@ -186,13 +196,13 @@ public class ClickableButton internal constructor(
     /**
      * Refresh or update this [ClickableButton] and all buttons inside current menu
      */
-    public fun refreshAll() {
+    internal fun refreshAll() {
         for (button in root.buttons.values) {
             button.refresh()
         }
     }
 
-    public fun buildLore() {
+    internal fun buildLore() {
         if (border) {
             item = item.withType(material)
             item.editMeta {
@@ -211,10 +221,10 @@ public class ClickableButton internal constructor(
     /**
      * Get player head texture
      */
-    public fun getHead(owner: UUID): ItemStack {
+    public fun getHead(): ItemStack {
         return ItemStack(Material.PLAYER_HEAD).also {
             val meta = it.itemMeta as SkullMeta
-            meta.owningPlayer = Bukkit.getPlayer(owner)
+            meta.owningPlayer = event.player as OfflinePlayer?
         }
     }
 }

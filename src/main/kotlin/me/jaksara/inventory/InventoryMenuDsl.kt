@@ -33,7 +33,7 @@ public open class InventoryMenuDsl internal constructor(public var title: String
     public var indexedLayout: HashMap<Int, MutableList<Int>> = HashMap()
         private set
 
-    public val executor: HashMap<Int, ExecutionContext.() -> Unit> = HashMap()
+    public val executor: HashMap<Int, ClickableButton> = HashMap()
     public val futureButton: HashMap<Int, ClickableButton.() -> Unit> = HashMap()
     public val buttons: HashMap<Int, ClickableButton> = HashMap()
     public val tasks: MutableList<Closeable> = mutableListOf()
