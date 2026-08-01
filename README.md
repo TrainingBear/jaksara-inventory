@@ -51,7 +51,7 @@ class MyPlugin: JavaPlugin() {
 
 
 # Quick Cookie Clicker example (Kotlin DSL)
-
+![Alt](CookieClicker.png)
 ```kotlin
 val menu = CustomMenu.createMenu("Cookie Clicker", plugin) {
     var cookies = 0

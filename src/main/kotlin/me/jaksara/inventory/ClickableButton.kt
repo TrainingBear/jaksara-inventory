@@ -188,7 +188,7 @@ public class ClickableButton internal constructor() : Cloneable {
      */
     internal fun refresh() {
         if (visible) {
-            item = item.withType(material())
+            item.type = material()
             val delta = (handler.id * 1000) + slotIndex
             item.editMeta {
                 if (border)
