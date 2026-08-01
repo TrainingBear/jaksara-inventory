@@ -63,6 +63,15 @@ public class ClickableButton internal constructor() : Cloneable {
         this.title = title
     }
 
+    /** Java-friendly overload: set the title using a Supplier<String> */
+    public fun title(titleSupplier: java.util.function.Supplier<String>) {
+        this.title = { titleSupplier.get() }
+    }
+
+    /** Java-friendly getter for the computed title */
+    @JvmName("getTitleString")
+    public fun getTitleString(): String = title()
+
     /**
      * Set this button to a fixed material
      * @param material the item material type
@@ -83,6 +92,14 @@ public class ClickableButton internal constructor() : Cloneable {
         this.material = material
     }
 
+    /** Java-friendly overload: provide material via Supplier<Material> */
+    public fun material(materialSupplier: java.util.function.Supplier<Material>) {
+        this.material = { materialSupplier.get() }
+    }
+
+    @JvmName("getMaterialType")
+    public fun getMaterialType(): Material = material()
+
     /**
      * Set the execution callback when button is clicked
      * @param exec callback block
@@ -90,6 +107,11 @@ public class ClickableButton internal constructor() : Cloneable {
     public fun onClick(exec: ExecutionContext.() -> Unit) {
 //        Bukkit.broadcast("Registered ${title()} as $exec".deserialize())
         executor = exec
+    }
+
+    /** Java-friendly overload: accept Consumer<ExecutionContext> */
+    public fun onClick(consumer: java.util.function.Consumer<ExecutionContext>) {
+        executor = { consumer.accept(this) }
     }
 
     /**
@@ -127,6 +149,7 @@ public class ClickableButton internal constructor() : Cloneable {
         lore = { deserialized }
     }
 
+
     /**
      * Make this button disappear or appear. [visible] is true by default
      * @param state when true, it will appear. or else it will disappear.
@@ -144,6 +167,11 @@ public class ClickableButton internal constructor() : Cloneable {
      */
     public fun builder(init: ClickableButton.() -> Unit) {
         builder = init
+    }
+
+    /** Java-friendly builder setter */
+    public fun builder(init: java.util.function.Consumer<ClickableButton>) {
+        builder = { init.accept(this) }
     }
 
     internal fun build() {

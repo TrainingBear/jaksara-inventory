@@ -2,7 +2,6 @@ package me.jaksara.inventory
 
 import it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap
 import me.jaksara.inventory.annotation.Menu
-import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.Sound
 import org.bukkit.entity.Player
@@ -14,8 +13,10 @@ import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.Plugin
 import java.io.Closeable
+import java.util.function.BiConsumer
 import kotlin.math.max
 import kotlin.math.min
+import java.util.function.Consumer
 
 
 /**
@@ -166,6 +167,22 @@ public open class InventoryMenuDsl internal constructor(public var title: String
         }
     }
 
+    /** Java-friendly overload accepting a Consumer<String> as callback */
+    public fun optionButton(
+        id: Int,
+        material: Material,
+        title: String,
+        lore: List<String> = emptyList(),
+        options: List<String>,
+        selectedIndex: Int = -1,
+        visible: Boolean = true,
+        callback: BiConsumer<ExecutionContext, String>
+    ): ClickableButton {
+        return optionButton(id, material, title, lore, options, selectedIndex, visible) {
+            callback.accept(this, it)
+        }
+    }
+
     /**
      * Create a template button for option selection
      * @param id target of item/button placement id.
@@ -193,6 +210,21 @@ public open class InventoryMenuDsl internal constructor(public var title: String
         return optionButton(id, material, title, lore, options, options.indexOf(selectedElement), visible, callback)
     }
 
+    public fun optionButton(
+        id: Int,
+        material: Material,
+        title: String,
+        lore: List<String> = emptyList(),
+        options: List<String>,
+        selectedElementParam: String = "",
+        visible: Boolean = true,
+        callback: BiConsumer<ExecutionContext, String>
+    ): ClickableButton {
+        return optionButton(id, material, title, lore, options, selectedElementParam, visible) {
+            callback.accept(this, it)
+        }
+    }
+
     /**
      * Create a template button for list button
      * @param id target of item/button placement id.
@@ -214,7 +246,7 @@ public open class InventoryMenuDsl internal constructor(public var title: String
         lore: List<String> = emptyList(),
         list: MutableList<String>,
         visible: Boolean = true,
-        callback: ExecutionContext.(MutableList<String>) -> Unit = {}
+        callback: ExecutionContext.(List<String>) -> Unit = {}
     ): ClickableButton {
         return button(id) list@{
             this.material(material)
@@ -254,6 +286,20 @@ public open class InventoryMenuDsl internal constructor(public var title: String
         }
     }
 
+    public fun listButton(
+        id: Int,
+        material: Material,
+        title: String,
+        lore: List<String> = emptyList(),
+        list: MutableList<String>,
+        visible: Boolean = true,
+        callback: BiConsumer<ExecutionContext, List<String>>
+    ): ClickableButton {
+        return listButton(id, material, title, lore, list, visible) {
+            callback.accept(this, it)
+        }
+    }
+
     /**
      * Create a button to Custom menu
      * @param id target of item/button placement id.
@@ -272,6 +318,11 @@ public open class InventoryMenuDsl internal constructor(public var title: String
         return button
     }
 
+    /** Java-friendly overload accepting a Consumer<ClickableButton> so Java can use a lambda. */
+    public fun button(id: Int, init: Consumer<ClickableButton>): ClickableButton {
+        return button(id) { init.accept(this) }
+    }
+
     /**
      * Create a button to Custom menu
      * @param id target of item/button placement id.
@@ -280,6 +331,11 @@ public open class InventoryMenuDsl internal constructor(public var title: String
      * @throws [NullPointerException] if [id] is not exist in [layout]
      */
     public fun createButton(id: Int, init: ClickableButton.() -> Unit): ClickableButton {
+        return button(id, init)
+    }
+
+    /** Java-friendly overload of createButton that accepts a Consumer<ClickableButton> for Java. */
+    public fun createButton(id: Int, init: Consumer<ClickableButton>): ClickableButton {
         return button(id, init)
     }
 

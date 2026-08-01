@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "io.github.trainingbear"
-version = "1.1.0-SNAPSHOT"
+version = "1.0.0-SNAPSHOT"
 
 repositories {
     mavenCentral()
@@ -21,6 +21,8 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
     api("net.kyori:adventure-api:4.14.0")
     api("net.kyori:adventure-text-minimessage:4.14.0")
+
+    // (Removed Lombok) Using manual Java builders instead
 }
 
 java {
@@ -31,6 +33,7 @@ kotlin {
     jvmToolchain(17)
     explicitApi()
 }
+
 
 mavenPublishing {
     publishToMavenCentral()

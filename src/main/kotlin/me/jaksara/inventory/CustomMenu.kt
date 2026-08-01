@@ -3,7 +3,9 @@ package me.jaksara.inventory
 import me.jaksara.inventory.listener.ChatInputListener
 import me.jaksara.inventory.listener.InventoryMenuListener
 import org.bukkit.plugin.Plugin
+import org.bukkit.Material
 import java.time.Duration
+import java.util.function.Consumer
 
 public object CustomMenu {
     /**
@@ -45,5 +47,19 @@ public object CustomMenu {
             e.printStackTrace()
         }
         return button
+    }
+
+    /** Java-friendly overload so Java can pass a Consumer<ClickableButton> */
+    @JvmStatic
+    public fun createButton(handler: ButtonHandler? = null, init: Consumer<ClickableButton>): ClickableButton {
+        return createButton(handler) { init.accept(this) }
+    }
+
+    /** Java-friendly createMenu that returns an editable InventoryMenuDsl instance (no init lambda) */
+    @JvmStatic
+    public fun createMenu(name: String, plugin: Plugin): InventoryMenuDsl {
+        val menu = InventoryMenuDsl(name, plugin)
+        menu.build()
+        return menu
     }
 }

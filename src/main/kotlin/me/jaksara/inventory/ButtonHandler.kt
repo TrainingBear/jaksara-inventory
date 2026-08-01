@@ -29,11 +29,39 @@ public class ButtonHandler(
         fill(result)
     }
 
+    /** Java-friendly overload for fill with element builder as BiFunction<Integer, ItemStack, Consumer<ClickableButton>> */
+    public fun fill(elements: java.util.List<ItemStack>, action: java.util.function.BiFunction<Int, ItemStack, java.util.function.Consumer<ClickableButton>>) {
+        val result = mutableListOf<ClickableButton>()
+        elements.forEachIndexed { index, item ->
+            val button = ClickableButton(this)
+            val consumer = action.apply(index, item)
+            val builder: ClickableButton.() -> Unit = { consumer.accept(this) }
+            builder.invoke(button)
+            button.builder = builder
+            result.add(button)
+        }
+        fill(result)
+    }
+
     public fun fill(size: Int, action: (Int) -> ClickableButton.() -> Unit) {
         val result = mutableListOf<ClickableButton>()
         for (index in 0..<size) {
             val button = ClickableButton(this)
             val builder = action(index)
+            builder.invoke(button)
+            button.builder = builder
+            result.add(button)
+        }
+        fill(result)
+    }
+
+    /** Java-friendly overload for fill with size and builder Function<Integer, Consumer<ClickableButton>> */
+    public fun fill(size: Int, action: java.util.function.Function<Int, java.util.function.Consumer<ClickableButton>>) {
+        val result = mutableListOf<ClickableButton>()
+        for (index in 0..<size) {
+            val button = ClickableButton(this)
+            val consumer = action.apply(index)
+            val builder: ClickableButton.() -> Unit = { consumer.accept(this) }
             builder.invoke(button)
             button.builder = builder
             result.add(button)
@@ -69,6 +97,11 @@ public class ButtonHandler(
         button.builder = init
         buttons.add(button)
         return button
+    }
+
+    /** Java-friendly overload to add an uninitialized button using a Consumer<ClickableButton> */
+    public fun add(init: java.util.function.Consumer<ClickableButton>): ClickableButton {
+        return add { init.accept(this) }
     }
 
     public fun remove(button: ClickableButton): Boolean {

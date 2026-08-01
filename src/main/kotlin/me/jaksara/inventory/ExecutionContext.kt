@@ -14,15 +14,18 @@ public data class ExecutionContext internal constructor(
 ) {
     val player: Player = invClickEvent.whoClicked as Player
 
-    public fun getPlayerChatInput(callback: (String) -> Unit) {
+    @JvmOverloads
+    public fun getPlayerChatInput(
+        title: Title = Title.title(
+            "<green>Please Open chat and send message to input!".deserialize(),
+            "<yellow>type \"cancel\" or \"q\" without quotes to cancel chat input".deserialize()
+        ),
+        message: String = "type \"cancel\" or \"q\" without quotes to cancel chat input",
+        callback: (String) -> Unit
+    ) {
         player.closeInventory()
-        player.showTitle(
-            Title.title(
-                "<green>Please Open chat and send message to input!".deserialize(),
-                "<yellow>type \"cancel\" or \"q\" without quotes to cancel chat input".deserialize()
-            )
-        )
-        "type \"cancel\" or \"q\" without quotes to cancel chat input".info(player)
+        player.showTitle(title)
+        message.info(player)
         player.jplayer().chatInputCallback = { input ->
             if (input != "cancel" && input != "q")
                 callback(input)
