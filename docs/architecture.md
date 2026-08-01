@@ -4,24 +4,26 @@ The library is intentionally small. Core runtime pieces:
 
 - Menu (InventoryMenuDsl)
 - Session (PlayerData cache)
-- Listener (InventoryMenuListener & ChatInputListener)
-- Button (ClickableButton & ButtonHandler)
+- Listener (InventoryMenuListener)
+- Button (ClickableButton)
 - ExecutionContext (callback runtime)
 
 Mermaid diagram
 
 ```mermaid
 graph TD
-  Player -- opens --> Menu[InventoryMenuDsl]
-  Menu -- holds --> ButtonHandler
-  ButtonHandler -- contains --> ClickableButton
-  ClickableButton -- writes meta --> Item[ItemStack]
-  Player -- clicks --> Listener[InventoryMenuListener]
-  Listener -- maps meta --> ClickableButton
-  Listener -- invokes --> ExecutionContext
-  ExecutionContext -- can call --> ButtonHandler
-  Player -- session --> PlayerData
-  ChatInputListener -- uses --> PlayerData
+    Player -- open --> Menu[CustomMenu]
+    Player -- click button --> Listener[InventoryMenuListener]
+    Player -- have --> session[Session]
+    Menu -- store cache --> session
+    Menu -- contains --> ButtonHandler
+    ButtonHandler -- contains --> buttons[Buttons]
+    buttons  --> Item[ItemStack]
+    buttons  --> title[Title]
+    buttons  --> lore[Lore]
+    buttons -- ExecutionContext --> executor[onClick Callback]
+    Listener -- invokes --> executor
+    executor -- execute --> Action
 ```
 
 Notes
