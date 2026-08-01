@@ -36,14 +36,14 @@ public data class ExecutionContext internal constructor(
      * @return List of ItemStack at the given id
      * @throws [NullPointerException] if [id] is not exist in this [InventoryMenuDsl.layout]
      */
-    public fun getItem(id: Int): List<ItemStack?> = source.root.getItem(id)
+    public fun getItem(id: Int): List<ItemStack?> = source.handler.root.getItem(id)
 
     /**
      * @param id target of item/button placement id inside this inventory.
      * @return [ClickableButton]
      * @throws [NullPointerException] if [id] is not exist in this [InventoryMenuDsl.layout]
      */
-    public fun getButton(id: Int): ClickableButton = source.root.getButton(id)
+    public fun getButton(id: Int): ButtonHandler = source.handler.root.getButton(id)
 
     /**
      * Refresh or update button appearance that only reapply [ClickableButton.lore], [ClickableButton.title], [ClickableButton.material]
@@ -57,16 +57,18 @@ public data class ExecutionContext internal constructor(
      * @see refresh
      */
     public fun refreshAll() {
-        source.refreshAll()
+        source.handler.buttons.forEach { it.refresh() }
     }
 
     /**
-     * Rebuild this button entirely from default initialization of [InventoryMenuDsl.createButton] or [InventoryMenuDsl.button]
+     * Rebuild this button entirely from [ClickableButton.builder].
+     *
+     * Or by default it will invoke [InventoryMenuDsl.createButton] or [InventoryMenuDsl.button]
      * @suppress use [refresh] instead if u only want to update the appearance of this button (title, lore, material).
      * @see refresh
      */
     public fun rebuild() {
-        source.rebuild()
+        source.build()
     }
 
     /**
@@ -75,5 +77,21 @@ public data class ExecutionContext internal constructor(
      */
     public fun rebuildAll() {
         source.rebuildAll()
+    }
+
+    /**
+     * Open the next page
+     * @param id target id
+     */
+    public fun openNextPage(id: Int) {
+        getButton(id).openNextPage()
+    }
+
+    /**
+     * Open the previous page
+     * @param id target id
+     */
+    public fun openPrevPage(id: Int) {
+        getButton(id).openPrevPage()
     }
 }

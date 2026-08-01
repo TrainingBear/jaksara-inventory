@@ -9,16 +9,19 @@ import net.kyori.adventure.text.format.TextDecoration
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.Plugin
+import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.util.UUID
 
 internal val AIR: ItemStack = ItemStack(Material.AIR)
 internal val cachedKey = HashMap<String, NamespacedKey>()
+internal val logger = LoggerFactory.getLogger("Custom Menu")
 internal val cache: Cache<UUID, PlayerData> = Caffeine.newBuilder()
     .expireAfterAccess(Duration.ofMinutes(20))
     .removalListener(RemovalListener<UUID, PlayerData> { key, value, cause ->
@@ -37,9 +40,9 @@ internal fun String.info(player: Player) {
     player.sendMessage(message)
 }
 
-internal fun String.error(plugin: Plugin, player: Player? = null) {
+internal fun String.error(plugin: Plugin? = null, player: Player? = null) {
     val message = this.deserialize().color(NamedTextColor.GREEN)
-    player?.sendMessage(message) ?: plugin.logger.log(java.util.logging.Level.WARNING, this)
+    player?.sendMessage(message) ?: logger.error(this)
 }
 
 internal fun String.deserialize(vararg tags: TagResolver): Component = MiniMessage.miniMessage().deserialize(this, *tags).decoration(TextDecoration.ITALIC, false)

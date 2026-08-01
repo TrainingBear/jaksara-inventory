@@ -8,6 +8,7 @@ import org.bukkit.Sound
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryCloseEvent
+import org.bukkit.event.inventory.InventoryOpenEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.InventoryHolder
 import org.bukkit.inventory.ItemStack
@@ -33,10 +34,9 @@ public open class InventoryMenuDsl internal constructor(public var title: String
     )
     public var indexedLayout: HashMap<Int, MutableList<Int>> = HashMap()
         private set
-
+    public lateinit var event: InventoryOpenEvent
     public val executor: HashMap<Int, ClickableButton> = HashMap()
-    public val futureButton: HashMap<Int, ClickableButton.() -> Unit> = HashMap()
-    public val buttons: HashMap<Int, ClickableButton> = HashMap()
+    public val futureButton: HashMap<Int, ButtonHandler> = HashMap()
     public val tasks: MutableList<Closeable> = mutableListOf()
 
     /**
@@ -70,32 +70,34 @@ public open class InventoryMenuDsl internal constructor(public var title: String
      * Template button for exit (close inventory)
      * throw [NullPointerException] if [id] is not exist in [layout]
      * @param id target of item/button placement id
+     *
+     * @return [ClickableButton] the created button
      * @throws [NullPointerException] if [id] is not exist in [layout]
      */
-    public fun exit(id: Int, material: Material) {
-        val init: ClickableButton.() -> Unit = border@{
-            this@border.material = material
-            this@border.title = "<red>Exit"
+    public fun exit(id: Int, material: Material): ClickableButton {
+        return button(id) border@{
+            this@border.material(material)
+            this@border.title("<red>Exit")
             this@border.onClick {
                 player.closeInventory()
             }
         }
-        futureButton[id] = init
     }
 
     /**
      * Template button for border
      * @param id target of item/button placement id
      * @param material material
+     *
+     * @return [ClickableButton] the created button
      * @throws [NullPointerException] if [id] is not exist in [layout]
      */
-    public fun border(id: Int, material: Material) {
-        val init: ClickableButton.() -> Unit = border@{
-            this@border.material = material
-            this@border.title = ""
+    public fun border(id: Int, material: Material): ClickableButton {
+        return button(id) border@{
+            this@border.material(material)
+            this@border.title("")
             this@border.border = true
         }
-        futureButton[id] = init
     }
 
     internal val selectedElement: Int2IntOpenHashMap = Int2IntOpenHashMap().apply {
@@ -119,6 +121,7 @@ public open class InventoryMenuDsl internal constructor(public var title: String
      * @param lore description button
      * @param callback callback when selection changes
      *
+     * @return [ClickableButton] the created button
      * @throws [NullPointerException] if [id] is not exist in [layout]
      * @see listButton
      */
@@ -131,15 +134,15 @@ public open class InventoryMenuDsl internal constructor(public var title: String
         selectedIndex: Int = -1,
         visible: Boolean = true,
         callback: ExecutionContext.(String) -> Unit = {}
-    ) {
-        val init: ClickableButton.() -> Unit = option@{
+    ): ClickableButton {
+        return button(id) option@{
             selectedElement[id] = selectedIndex
-            this@option.material = material
-            this@option.title = title
+            this@option.material(material)
+            this@option.title(title)
             setVisible(visible)
             val completeLore = mutableListOf<String>()
             completeLore += lore
-            for (i in 1 until options.size) completeLore += this@InventoryMenuDsl.getOptionLine(id, i, options)
+            for (i in options.indices) completeLore += this@InventoryMenuDsl.getOptionLine(id, i, options)
 
             lore(*completeLore.toTypedArray())
             onClick {
@@ -151,17 +154,16 @@ public open class InventoryMenuDsl internal constructor(public var title: String
                     this@InventoryMenuDsl.selectedElement[id] = this@InventoryMenuDsl.selectedElement[id] - 1
                     this@InventoryMenuDsl.selectedElement[id] = max(this@InventoryMenuDsl.selectedElement[id], 0)
                 } else return@onClick
-                Bukkit.broadcast("Selected ${this@InventoryMenuDsl.selectedElement[id]}".deserialize())
+//                Bukkit.broadcast("Selected ${this@InventoryMenuDsl.selectedElement[id]}".deserialize())
                 val completeLore = mutableListOf<String>()
                 completeLore += lore
-                for (i in 1 until options.size) completeLore += this@InventoryMenuDsl.getOptionLine(id, i, options)
-                lore(*completeLore.toTypedArray())
+                for (i in options.indices) completeLore += this@InventoryMenuDsl.getOptionLine(id, i, options)
+                this@option.lore(*completeLore.toTypedArray())
                 callback(options[this@InventoryMenuDsl.selectedElement[id]])
                 player.playSound(player.location, Sound.UI_BUTTON_CLICK, 1f, 1f)
                 refresh()
             }
         }
-        futureButton[id] = init
     }
 
     /**
@@ -174,6 +176,7 @@ public open class InventoryMenuDsl internal constructor(public var title: String
      * @param lore description button
      * @param callback callback when selection changes
      *
+     * @return [ClickableButton] the created button
      * @throws [NullPointerException] if [id] is not exist in [layout]
      * @see listButton
      */
@@ -186,8 +189,8 @@ public open class InventoryMenuDsl internal constructor(public var title: String
         selectedElement: String = "",
         visible: Boolean = true,
         callback: ExecutionContext.(String) -> Unit = {}
-    ) {
-        optionButton(id, material, title, lore, options, options.indexOf(selectedElement), visible, callback)
+    ): ClickableButton {
+        return optionButton(id, material, title, lore, options, options.indexOf(selectedElement), visible, callback)
     }
 
     /**
@@ -199,6 +202,7 @@ public open class InventoryMenuDsl internal constructor(public var title: String
      * @param list container for storing element
      * @param callback callback when selection changes. with param [list]
      *
+     * @return [ClickableButton] the created button
      * @throws [NullPointerException] if [id] is not exist in [layout]
      * @see optionButton
      */
@@ -211,10 +215,10 @@ public open class InventoryMenuDsl internal constructor(public var title: String
         list: MutableList<String>,
         visible: Boolean = true,
         callback: ExecutionContext.(MutableList<String>) -> Unit = {}
-    ) {
-        val init: ClickableButton.() -> Unit = list@{
-            this.material = material
-            this.title = title
+    ): ClickableButton {
+        return button(id) list@{
+            this.material(material)
+            this.title(title)
             this.setVisible(visible)
             val completeLore = mutableListOf<String>()
             completeLore.addAll(lore)
@@ -248,36 +252,66 @@ public open class InventoryMenuDsl internal constructor(public var title: String
                 refresh()
             }
         }
-        futureButton[id] = init
     }
 
     /**
      * Create a button to Custom menu
      * @param id target of item/button placement id.
      * @param init body/builder for the button
+     * @return [ClickableButton] the created button
      * @throws [NullPointerException] if [id] is not exist in [layout]
      */
-    public fun button(id: Int, init: ClickableButton.() -> Unit) {
-        futureButton[id] = init
+    public fun button(id: Int, init: ClickableButton.() -> Unit): ClickableButton {
+        val handle = ButtonHandler(this, id)
+        val button = ClickableButton(handle)
+        button.builder = init;
+        for (i in indexedLayout[id]!!) {
+            handle.buttons.add(button.clone())
+        }
+        futureButton[id] = handle
+        return button
     }
 
     /**
      * Create a button to Custom menu
      * @param id target of item/button placement id.
      * @param init body/builder for the button
+     * @return [ClickableButton] the created button
      * @throws [NullPointerException] if [id] is not exist in [layout]
      */
-    public fun createButton(id: Int, init: ClickableButton.() -> Unit) {
-        button(id, init)
+    public fun createButton(id: Int, init: ClickableButton.() -> Unit): ClickableButton {
+        return button(id, init)
     }
 
     /**
+     * Fill a whole layout with slot [id] to [buttons] as [Paginator]
+     * @param buttons the elements that will be placed inside layout
+     * @return [ButtonHandler] the created button. it contains filled [buttons]
+     * @see [ButtonHandler.openNextPage]
+     * @see [ButtonHandler.openPrevPage]
+     */
+    public fun fill(id: Int, buttons: List<ClickableButton>): ButtonHandler {
+        val handle = ButtonHandler(this, id)
+        handle.fill(buttons)
+        futureButton[id] = handle
+        return handle
+    }
+
+    public fun fill(id: Int, vararg buttons: ClickableButton): ButtonHandler {
+        val handle = ButtonHandler(this, id)
+        handle.fill(*buttons)
+        futureButton[id] = handle
+        return handle
+    }
+
+
+    /**
      * @param id target of item/button placement id.
-     * @return [ClickableButton]
+     * @return [ButtonHandler]
      * @throws [NullPointerException] if [id] is not exist in [layout]
      */
-    internal fun getButton(id: Int): ClickableButton {
-        return buttons[id]!!
+    internal fun getButton(id: Int): ButtonHandler {
+        return futureButton[id]!!
     }
 
     /**

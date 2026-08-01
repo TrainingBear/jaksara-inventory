@@ -2,6 +2,7 @@ package me.jaksara.inventory
 
 import me.jaksara.inventory.annotation.Button
 import net.kyori.adventure.text.Component
+import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.OfflinePlayer
 import org.bukkit.entity.Player
@@ -10,41 +11,76 @@ import org.bukkit.inventory.ItemFlag
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.SkullMeta
 import org.bukkit.persistence.PersistentDataType
-import java.util.UUID
+
 @Button
-public class ClickableButton internal constructor(
-    public val root: InventoryMenuDsl,
-    public val id: Int,
+public class ClickableButton internal constructor() : Cloneable {
+    public lateinit var handler: ButtonHandler
+
+    public constructor(handler: ButtonHandler) : this() {
+        this.handler = handler
+    }
+
+    internal var slotIndex: Int = 0
+    public var builder: ClickableButton.() -> Unit = {}
     public val event: InventoryOpenEvent
-) {
-    public val player: Player = event.player as Player
-    public var executor: ExecutionContext.() -> Unit = {}
-    public var material: Material = Material.BEDROCK
-    public var title: String = "example"
+        get() = handler.root.event
+    public var executor: ExecutionContext.() -> Unit = {
+//        Bukkit.broadcast("Default executor invoked!".deserialize())
+    }
+    public var material: () -> Material = { Material.BEDROCK }
+    public var title: () -> String = { "example" }
     public var lore: () -> List<Component> = { listOf() }
-    public var item: ItemStack = ItemStack(material)
-    public var menu: InventoryMenuDsl? = null
+    public var item: ItemStack = ItemStack(material())
     public var border: Boolean = false
     public var visible: Boolean = true
         private set
 
-    private val s: ClickableButton.() -> Unit = new@{
-        this@new.material = this@ClickableButton.material
-        this@new.executor = this@ClickableButton.executor
-        this@new.title = this@ClickableButton.title
-        this@new.item = this@ClickableButton.item
-        this@new.lore = this@ClickableButton.lore
-        this@new.menu = this@ClickableButton.menu
+    public override fun clone(): ClickableButton {
+        val clone = super.clone() as ClickableButton
+        clone.item = item.clone()
+        return clone
     }
-    public var filled: Paginator<ClickableButton.() -> Unit>
 
-    init {
-        val result = mutableListOf<ClickableButton.() -> Unit>()
-        val viewSize = root.indexedLayout[id]!!.size
-        repeat(viewSize) {
-            result.add(s)
-        }
-        filled = Paginator(viewSize, result)
+
+    /**
+     * Sets a fixed title for this button.
+     *
+     * @param title The title to display.
+     */
+    public fun title(title: String) {
+        this.title = { title }
+    }
+
+    /**
+     * Sets the title provider.
+     *
+     * The supplied lambda is invoked whenever the button's title is requested,
+     * allowing the title to be determined dynamically at runtime.
+     *
+     * @param title A function that returns the title to display.
+     */
+    public fun title(title: () -> String) {
+        this.title = title
+    }
+
+    /**
+     * Set this button to a fixed material
+     * @param material the item material type
+     */
+    public fun material(material: Material) {
+        this.material = { material }
+    }
+
+    /**
+     * Sets the material supplier.
+     *
+     * The lambda is invoked whenever the material is needed, allowing the
+     * material to be determined dynamically instead of being stored as a
+     * fixed value.
+     * @param material A function that returns the material to use.
+     */
+    public fun material(material: () -> Material) {
+        this.material = material
     }
 
     /**
@@ -52,6 +88,7 @@ public class ClickableButton internal constructor(
      * @param exec callback block
      */
     public fun onClick(exec: ExecutionContext.() -> Unit) {
+//        Bukkit.broadcast("Registered ${title()} as $exec".deserialize())
         executor = exec
     }
 
@@ -91,133 +128,53 @@ public class ClickableButton internal constructor(
     }
 
     /**
-     * Create a submenu for this button
-     * @param title Inventory title
-     * @param init inventory builder block
-     * @return [InventoryMenuDsl], created menu
-     */
-    public fun createMenu(title: String, init: InventoryMenuDsl.() -> Unit): InventoryMenuDsl {
-        menu = InventoryMenuDsl(title, root.plugin)
-        init(menu!!)
-        return menu!!
-    }
-
-    /**
-     * Fill a whole layout with slot [id] to [elements]
-     * @param elements the elements that will be placed inside layout
-     * @param action builder for each item/button. with
-     * @see [openNextPage]
-     * @see [openPrevPage]
-     */
-    public fun fill(elements: List<ItemStack>, action: (Int, ItemStack) -> ClickableButton.() -> Unit) {
-        val result = mutableListOf<ClickableButton.() -> Unit>()
-        elements.forEachIndexed { index, item ->
-            result.add(action(index, item))
-        }
-        fill(result)
-    }
-
-    public fun fill(size: Int, action: (Int) -> ClickableButton.() -> Unit) {
-        val result = mutableListOf<ClickableButton.() -> Unit>()
-        for (index in 0..<size) {
-            result.add(action(index))
-        }
-        fill(result)
-    }
-
-    public fun fill(buttons: List<ClickableButton.() -> Unit>) {
-        filled = Paginator(root.indexedLayout[id]!!.size, buttons)
-    }
-
-    /**
      * Make this button disappear or appear. [visible] is true by default
      * @param state when true, it will appear. or else it will disappear.
      */
-    public fun setVisible(state: Boolean){
-        if(state==visible) return
+    public fun setVisible(state: Boolean) {
+        if (state == visible) return
         visible = state
         refresh()
     }
 
     /**
-     * Open the next page
+     * Set a button [builder] for this button.
+     *
+     * [builder] will get initialized on [build]
      */
-    public fun openNextPage() {
-        filled.next()
+    public fun builder(init: ClickableButton.() -> Unit) {
+        builder = init
+    }
+
+    internal fun build() {
+        builder(this)
         refresh()
     }
 
-    /**
-     * Open the previous page
-     */
-    public fun openPrevPage() {
-        filled.prev()
-        refresh()
-    }
-
-    internal fun init() {
-        if (filled.pages.isEmpty()) return
-        val iterator = filled.get().iterator()
-        root.indexedLayout[id]!!.forEach { index ->
-            if (iterator.hasNext()) {
-                val button = ClickableButton(root, id, event)
-                iterator.next().invoke(button)
-
-                button.buildLore()
-
-                val delta = (id * 1000) + index
-                button.item.editMeta {
-                    it.persistentDataContainer.set(root.title.namespacedKey(), PersistentDataType.INTEGER, delta)
-                }
-                root.executor[delta] = this
-                if(visible) root.inv.setItem(index, button.item)
-                else root.inv.setItem(index, AIR)
-            } else root.inv.setItem(index, AIR)
-        }
-//        root.plugin.server.broadcast("button with id: $id built!".deserialize())
-    }
-
-    internal fun rebuild() {
-        root.futureButton[id]!!.invoke(this)
-        refresh()
+    internal fun rebuildAll() {
+        handler.build(true)
     }
 
     /**
      * Refresh or update this [ClickableButton]
      */
     internal fun refresh() {
-        init()
-    }
-
-    internal fun rebuildAll() {
-        for (button in root.buttons.values) {
-            button.rebuildAll()
-        }
-    }
-
-    /**
-     * Refresh or update this [ClickableButton] and all buttons inside current menu
-     */
-    internal fun refreshAll() {
-        for (button in root.buttons.values) {
-            button.refresh()
-        }
-    }
-
-    internal fun buildLore() {
-        if (border) {
-            item = item.withType(material)
+        if (visible) {
+            item = item.withType(material())
+            val delta = (handler.id * 1000) + slotIndex
             item.editMeta {
-                it.addItemFlags(*ItemFlag.entries.toTypedArray())
+                if (border)
+                    it.addItemFlags(*ItemFlag.entries.toTypedArray())
+                it.displayName(title().deserialize())
+                it.lore(lore.invoke())
+                it.persistentDataContainer.set(handler.root.title.namespacedKey(), PersistentDataType.INTEGER, delta)
             }
-            return
-        }
-        item = item.withType(material)
-        item.editMeta {
-            it.displayName(title.deserialize())
-            it.lore(lore.invoke())
-            it.persistentDataContainer.set(root.title.namespacedKey(), PersistentDataType.INTEGER, id)
-        }
+            handler.root.executor[delta] = this
+
+            handler.root.inv.setItem(slotIndex, item)
+//            Bukkit.broadcast("${title()} registered with id: $delta. task: $executor".deserialize())
+        } else handler.root.inv.setItem(slotIndex, AIR)
+
     }
 
     /**
@@ -226,7 +183,7 @@ public class ClickableButton internal constructor(
     public fun getHead(): ItemStack {
         return ItemStack(Material.PLAYER_HEAD).also {
             val meta = it.itemMeta as SkullMeta
-            meta.owningPlayer = event.player as OfflinePlayer?
+            meta.owningPlayer = handler.root.event.player as OfflinePlayer?
         }
     }
 }

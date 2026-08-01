@@ -34,4 +34,16 @@ public object CustomMenu {
         menu.build()
         return menu
     }
+
+    @JvmStatic
+    public fun createButton(handler: ButtonHandler? = null, init: ClickableButton.()-> Unit): ClickableButton {
+        val button = if(handler != null) ClickableButton(handler) else ClickableButton()
+        button.builder = init
+        try{
+            init.invoke(button)
+        } catch (e: Exception){
+            e.printStackTrace()
+        }
+        return button
+    }
 }
