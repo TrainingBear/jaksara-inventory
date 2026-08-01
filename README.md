@@ -1,4 +1,6 @@
-Jaksara Inventory
+# Jaksara Inventory
+![Maven Central Version](https://img.shields.io/maven-central/v/io.github.trainingbear/jaksara-inventory)
+![GitHub Tag](https://img.shields.io/github/v/tag/TrainingBear/jaksara-inventory)
 ===================
 A lightweight Kotlin-first inventory menu framework for Bukkit/Spigot plugins. It provides a Kotlin DSL and Java-friendly APIs to build interactive GUIs (menus) with clickable buttons, paginators, and helper ExecutionContext utilities.
 # Installation
@@ -13,7 +15,7 @@ Gradle (Kotlin DSL)
 
 ```kotlin
 dependencies {
-    implementation("io.github.trainingbear:jaksara-inventory:1.0.0") // replace with published coordinates
+    implementation("io.github.trainingbear:jaksara-inventory:<version>") 
 }
 ```
 
@@ -21,7 +23,7 @@ Gradle (Groovy)
 
 ```groovy
 dependencies {
-    implementation 'io.github.trainingbear:jaksara-inventory:1.0.0'
+    implementation 'io.github.trainingbear:jaksara-inventory:<version>'
 }
 ```
 
@@ -31,7 +33,7 @@ Maven
 <dependency>
   <groupId>io.github.trainingbear</groupId>
   <artifactId>jaksara-inventory</artifactId>
-  <version>1.0.0</version>
+  <version>version</version>
 </dependency>
 ```
 
