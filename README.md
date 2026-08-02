@@ -53,7 +53,7 @@ public class MyPlugin extends JavaPlugin {
 
 
 # Quick Cookie Clicker example (Kotlin DSL + Java)
-![Alt](CookieClicker.png)
+![Alt](cookie.gif)
 ```kotlin
 val menu = CustomMenu.createMenu("Cookie Clicker", plugin) {
     var cookies = 0
@@ -98,6 +98,7 @@ fun createMenu(player Player) {
 ```
 
 # Pagination Menu Example (Kotlin DSL)
+![Alt](pagination.gif)
 ```kotlin
 fun createMenu(player: Player, plugin: Plugin) {
     val menu = CustomMenu.createMenu("<bold>Pagination Demo", plugin) {
@@ -193,7 +194,8 @@ public void createMenu(Player player, Plugin plugin) {
 }
 ```
 
-# Option Menu Example (Kotlin DSL)
+# Option Button Example (Kotlin DSL)
+![Alt](option.gif)
 ```kotlin
     val menu = CustomMenu.createMenu("<bold>Option Button Demo", plugin) {
         layout(
@@ -221,7 +223,8 @@ public void createMenu(Player player, Plugin plugin) {
 
 ```
 
-# Option Menu Example (Kotlin DSL)
+# List Button Example (Kotlin DSL)
+![Alt](list.gif)
 ```kotlin
     val menu = CustomMenu.createMenu("<bold>List Button Demo", plugin) {
         layout(
