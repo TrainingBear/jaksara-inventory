@@ -225,6 +225,18 @@ public open class InventoryMenuDsl internal constructor(public var title: String
         }
     }
 
+    internal fun updateList(lore: List<String>, list: MutableList<String>): MutableList<String> {
+        val completeLore = mutableListOf<String>()
+        completeLore.addAll(lore)
+            for (string in list)
+                completeLore += "<gray> - <white>$string"
+            completeLore += ""
+            completeLore += "<yellow>Left Click to add element"
+            completeLore += "<yellow>Middle Click to remove last element"
+            completeLore += "<yellow>Right Click to remove specified element"
+        return completeLore
+    }
+
     /**
      * Create a template button for list button
      * @param id target of item/button placement id.
@@ -252,36 +264,27 @@ public open class InventoryMenuDsl internal constructor(public var title: String
             this.material(material)
             this.title(title)
             this.setVisible(visible)
-            val completeLore = mutableListOf<String>()
-            completeLore.addAll(lore)
-            completeLore += ""
-            completeLore += "<yellow>Left Click to add element"
-            completeLore += "<yellow>Middle Click to remove last element"
-            completeLore += "<yellow>Right Click to remove specified element"
-            for (string in list)
-                completeLore += "<gray> - <white>$string"
-
-            this.lore(completeLore)
+            this.lore(updateList(lore, list))
             onClick {
                 if (invClickEvent.isLeftClick) getPlayerChatInput { element ->
                     list.add(element)
+                    lore(updateList(lore, list))
+                    callback(list)
+                    refresh()
                 }
                 else if (invClickEvent.isRightClick) getPlayerChatInput { element ->
                     list.remove(element)
+                    lore(updateList(lore, list))
+                    callback(list)
+                    refresh()
                 }
-                else if (invClickEvent.click == ClickType.MIDDLE) list.removeLast()
+                else if (invClickEvent.click == ClickType.MIDDLE) {
+                    list.removeLast()
+                    lore(updateList(lore, list))
+                    callback(list)
+                    refresh()
+                }
                 else return@onClick
-                callback(list)
-                val completeLore = mutableListOf<String>()
-                completeLore.addAll(lore)
-                for (string in list)
-                    completeLore += "<gray> - <white>$string"
-                completeLore += ""
-                completeLore += "<yellow>Left Click to add element"
-                completeLore += "<yellow>Middle Click to remove last element"
-                completeLore += "<yellow>Right Click to remove specified element"
-                this@list.lore(completeLore)
-                refresh()
             }
         }
     }
