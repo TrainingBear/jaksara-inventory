@@ -10,23 +10,37 @@
 ---
 
 A lightweight Kotlin-first inventory menu framework for Bukkit/Spigot plugins. It provides a Kotlin DSL and Java-friendly APIs to build interactive GUIs (menus) with clickable buttons, paginators, and helper ExecutionContext utilities.
+
+Instead of manually placing items at slot indices and matching those indices in click events, this framework lets you define buttons using stable IDs. The framework manages the mapping between IDs and inventory slots, making layouts easier to build, update, and maintain.
+
+Inspired by modern declarative UI frameworks, menus are described using components instead of manually managing inventory slots.
+
+this framework is still lack of documentation. feel free to contribute 🙏 
+
 # Installation
 
 Requirements
-
 - PaperMC API: 1.20.1 or newer
+
+> **Latest version:** https://central.sonatype.com/artifact/io.github.trainingbear/jaksara-inventory
 
 Gradle (Kotlin DSL)
 ```kotlin
+repositories {
+    mavenCentral()
+}
 dependencies {
-    implementation("io.github.trainingbear:jaksara-inventory:<version>") 
+    implementation("io.github.trainingbear:jaksara-inventory:1.2.1")
 }
 ```
 
 Gradle (Groovy)
 ```groovy
+repositories {
+    mavenCentral()
+}
 dependencies {
-    implementation 'io.github.trainingbear:jaksara-inventory:<version>'
+    implementation 'io.github.trainingbear:jaksara-inventory:1.2.1'
 }
 ```
 
@@ -35,7 +49,7 @@ Maven
 <dependency>
   <groupId>io.github.trainingbear</groupId>
   <artifactId>jaksara-inventory</artifactId>
-  <version>version</version>
+  <version>1.2.1</version>
 </dependency>
 ```
 
