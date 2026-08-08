@@ -43,10 +43,10 @@ public data class ExecutionContext internal constructor(
 
     /**
      * @param id target of item/button placement id inside this inventory.
-     * @return [ClickableButton]
+     * @return [ButtonHandlerWrapper] the handler that already built
      * @throws [NullPointerException] if [id] is not exist in this [InventoryMenuDsl.layout]
      */
-    public fun getButton(id: Int): ButtonHandler = source.handler.root.getButton(id)
+    public fun getButton(id: Int): ButtonHandlerWrapper = source.handler.root.getButton(id)
 
     /**
      * Refresh or update button appearance that only reapply [ClickableButton.lore], [ClickableButton.title], [ClickableButton.material]

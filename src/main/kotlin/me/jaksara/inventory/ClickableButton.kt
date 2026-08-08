@@ -41,6 +41,8 @@ public class ClickableButton internal constructor() : Cloneable {
         return clone
     }
 
+    public fun getWrapper(): ButtonWrapper = ButtonWrapper(this)
+
 
     /**
      * Sets a fixed title for this button.

@@ -5,7 +5,7 @@ import org.bukkit.inventory.ItemStack
 public class ButtonHandler(
     public val root: InventoryMenuDsl,
     public val id: Int,
-) {
+): ButtonHandlerWrapper {
     public var buttons: Paginator<ClickableButton> = Paginator(root.indexedLayout[id]!!.size, emptyList())
     public var lastPage: Int = -1
         private set
@@ -17,7 +17,7 @@ public class ButtonHandler(
      * @see [openNextPage]
      * @see [openPrevPage]
      */
-    public fun fill(elements: List<ItemStack>, action: (Int, ItemStack) -> ClickableButton.() -> Unit) {
+    public override fun fill(elements: List<ItemStack>, action: (Int, ItemStack) -> ClickableButton.() -> Unit) {
         val result = mutableListOf<ClickableButton>()
         elements.forEachIndexed { index, item ->
             val button = ClickableButton(this)
@@ -30,7 +30,7 @@ public class ButtonHandler(
     }
 
     /** Java-friendly overload for fill with element builder as BiFunction<Integer, ItemStack, Consumer<ClickableButton>> */
-    public fun fill(elements: java.util.List<ItemStack>, action: java.util.function.BiFunction<Int, ItemStack, java.util.function.Consumer<ClickableButton>>) {
+    public override fun fill(elements: java.util.List<ItemStack>, action: java.util.function.BiFunction<Int, ItemStack, java.util.function.Consumer<ClickableButton>>) {
         val result = mutableListOf<ClickableButton>()
         elements.forEachIndexed { index, item ->
             val button = ClickableButton(this)
@@ -43,7 +43,7 @@ public class ButtonHandler(
         fill(result)
     }
 
-    public fun fill(size: Int, action: (Int) -> ClickableButton.() -> Unit) {
+    public override fun fill(size: Int, action: (Int) -> ClickableButton.() -> Unit) {
         val result = mutableListOf<ClickableButton>()
         for (index in 0..<size) {
             val button = ClickableButton(this)
@@ -56,7 +56,7 @@ public class ButtonHandler(
     }
 
     /** Java-friendly overload for fill with size and builder Function<Integer, Consumer<ClickableButton>> */
-    public fun fill(size: Int, action: java.util.function.Function<Int, java.util.function.Consumer<ClickableButton>>) {
+    public override fun fill(size: Int, action: java.util.function.Function<Int, java.util.function.Consumer<ClickableButton>>) {
         val result = mutableListOf<ClickableButton>()
         for (index in 0..<size) {
             val button = ClickableButton(this)
@@ -69,21 +69,21 @@ public class ButtonHandler(
         fill(result)
     }
 
-    public fun fill(vararg buttons: ClickableButton) {
+    public override fun fill(vararg buttons: ClickableButton) {
         this@ButtonHandler.buttons = Paginator(root.indexedLayout[id]!!.size, buttons.map {
             it.handler = this
             it
         })
     }
 
-    public fun fill(buttons: List<ClickableButton>) {
+    public override fun fill(buttons: List<ClickableButton>) {
         this@ButtonHandler.buttons = Paginator(root.indexedLayout[id]!!.size, buttons.map {
             it.handler = this
             it
         })
     }
 
-    public fun add(button: ClickableButton): ClickableButton {
+    public override fun add(button: ClickableButton): ClickableButton {
         button.handler = this
         buttons.add(button)
         return button
@@ -92,7 +92,7 @@ public class ButtonHandler(
     /**
      * @return uninitialized button.
      */
-    public fun add(init: ClickableButton.() -> Unit): ClickableButton {
+    public override fun add(init: ClickableButton.() -> Unit): ClickableButton {
         val button = ClickableButton(this)
         button.builder = init
         buttons.add(button)
@@ -100,18 +100,18 @@ public class ButtonHandler(
     }
 
     /** Java-friendly overload to add an uninitialized button using a Consumer<ClickableButton> */
-    public fun add(init: java.util.function.Consumer<ClickableButton>): ClickableButton {
+    public override fun add(init: java.util.function.Consumer<ClickableButton>): ClickableButton {
         return add { init.accept(this) }
     }
 
-    public fun remove(button: ClickableButton): Boolean {
+    public override fun remove(button: ClickableButton): Boolean {
         return buttons.remove(button)
     }
 
     /**
      * Open the next page
      */
-    public fun openNextPage() {
+    public override fun openNextPage() {
         buttons.page = (buttons.page + 1).coerceIn(1, buttons.totalPages)
         build()
     }
@@ -119,13 +119,13 @@ public class ButtonHandler(
     /**
      * Open the previous page
      */
-    public fun openPrevPage() {
+    public override fun openPrevPage() {
         buttons.page = (buttons.page - 1).coerceIn(1, buttons.totalPages)
         buttons.prev()
         build()
     }
 
-    internal fun build(force: Boolean = false) {
+    internal fun buildInternal(force: Boolean) {
         if (lastPage == buttons.page && !force) return
         lastPage = buttons.page
         val iterator = buttons.get().iterator()

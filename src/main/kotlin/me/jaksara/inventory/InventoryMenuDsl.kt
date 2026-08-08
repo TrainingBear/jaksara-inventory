@@ -143,7 +143,10 @@ public open class InventoryMenuDsl internal constructor(public var title: String
             setVisible(visible)
             val completeLore = mutableListOf<String>()
             completeLore += lore
-            for (i in options.indices) completeLore += this@InventoryMenuDsl.getOptionLine(id, i, options)
+            val frame = 10
+            val mis = selectedIndex - frame
+            for (i in max(0, mis) .. min(selectedIndex+ frame + max(0, mis*-1), options.size-1))
+            completeLore += this@InventoryMenuDsl.getOptionLine(id, i, options)
 
             lore(*completeLore.toTypedArray())
             onClick {
@@ -158,7 +161,11 @@ public open class InventoryMenuDsl internal constructor(public var title: String
 //                Bukkit.broadcast("Selected ${this@InventoryMenuDsl.selectedElement[id]}".deserialize())
                 val completeLore = mutableListOf<String>()
                 completeLore += lore
-                for (i in options.indices) completeLore += this@InventoryMenuDsl.getOptionLine(id, i, options)
+                val selected = max(0, selectedElement[id])
+
+                val mis = selected - frame
+                for (i in max(0, mis) .. min(selected+ frame + max(0, mis*-1), options.size-1))
+                    completeLore += this@InventoryMenuDsl.getOptionLine(id, i, options)
                 this@option.lore(*completeLore.toTypedArray())
                 callback(options[this@InventoryMenuDsl.selectedElement[id]])
                 player.playSound(player.location, Sound.UI_BUTTON_CLICK, 1f, 1f)
