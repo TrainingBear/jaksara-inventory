@@ -15,8 +15,11 @@ public object CustomMenu {
      * and free it from memory
      */
     public var expireAfterAccessDuration: Duration = Duration.ofMinutes(60)
+    public var plugin: Plugin? = null
+
     @JvmStatic
     public fun init(plugin: Plugin) {
+        this.plugin = plugin
         plugin.server.pluginManager.registerEvents(ChatInputListener(plugin), plugin)
         plugin.server.pluginManager.registerEvents(InventoryMenuListener(plugin), plugin)
         plugin.logger.info("Custom Menu has been successfully initialized!")

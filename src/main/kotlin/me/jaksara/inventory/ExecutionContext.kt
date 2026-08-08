@@ -2,9 +2,12 @@ package me.jaksara.inventory
 
 import me.jaksara.inventory.annotation.Executor
 import net.kyori.adventure.title.Title
+import net.wesjd.anvilgui.AnvilGUI
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.inventory.ItemStack
+import java.util.Arrays
+import java.util.Collections
 
 @ConsistentCopyVisibility
 @Executor
@@ -27,11 +30,41 @@ public data class ExecutionContext internal constructor(
         player.showTitle(title)
         message.info(player)
         player.jplayer().chatInputCallback = { input ->
-            if (input != "cancel" && input != "q")
+            if (input != "cancel" && input != "q") {
                 callback(input)
+            }
             player.openInventory(invClickEvent.inventory)
             player.jplayer().chatInputCallback = null
+            true
         }
+    }
+
+
+    public fun getAnvilInput(
+        title: String = "Enter your answer",
+        text: String = "What is the meaning of life?",
+        callback: (String) -> Boolean
+    ) {
+        AnvilGUI.Builder()
+            .onClose { stateSnapshot ->
+                player.openInventory(invClickEvent.inventory)
+            }
+            .onClick { slot, stateSnapshot ->
+                if (slot != AnvilGUI.Slot.OUTPUT) {
+                    return@onClick emptyList();
+                }
+
+                if (callback(stateSnapshot.text)) {
+                    return@onClick listOf(AnvilGUI.ResponseAction.close());
+                } else {
+                    return@onClick listOf(AnvilGUI.ResponseAction.replaceInputText("Please Try Again"));
+                }
+            }
+            .preventClose()
+            .text(text)
+            .title(title)
+            .plugin(CustomMenu.plugin)
+            .open(player);
     }
 
     /**

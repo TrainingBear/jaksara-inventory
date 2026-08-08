@@ -55,10 +55,6 @@ public class ButtonWrapper(private val clickableButton: ClickableButton) : Clone
         get() = clickableButton.border
         set(value) { clickableButton.border = value }
 
-    public var visible: Boolean
-        get() = clickableButton.visible
-        private set(value) { /* Read-only for external callers */ }
-
     // ============ Public Method Delegates ============
 
     public override fun clone(): ClickableButton = clickableButton.clone()
